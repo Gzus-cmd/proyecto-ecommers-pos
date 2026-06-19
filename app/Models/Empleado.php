@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Empleado extends Model
 {
@@ -15,6 +16,7 @@ class Empleado extends Model
         'dni',
         'cargo',
         'activo',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -30,6 +32,11 @@ class Empleado extends Model
     public function scopeActivos(Builder $query): void
     {
         $query->where('activo', true);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function ventasFisicas()

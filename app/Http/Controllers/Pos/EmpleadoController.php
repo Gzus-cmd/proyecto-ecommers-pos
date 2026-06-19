@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreEmpleadoRequest;
 use App\Http\Requests\Pos\UpdateEmpleadoRequest;
 use App\Models\Empleado;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class EmpleadoController extends Controller
@@ -14,6 +15,7 @@ class EmpleadoController extends Controller
     {
         $search = $request->get('search');
         $empleados = Empleado::query()
+            ->with('user')
             ->when($search, function ($query, $search) {
                 $query->where('nombres', 'like', "%{$search}%")
                     ->orWhere('apellidos', 'like', "%{$search}%")
@@ -24,7 +26,7 @@ class EmpleadoController extends Controller
 
         return inertia('Pos/Empleados/Index', [
             'empleados' => $empleados,
-            'search' => $search,
+            'search'    => $search,
         ]);
     }
 
@@ -35,7 +37,18 @@ class EmpleadoController extends Controller
 
     public function store(StoreEmpleadoRequest $request)
     {
-        Empleado::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->boolean('crear_usuario')) {
+            $user = User::create([
+                'name'     => $data['name'],
+                'email'    => $data['email'],
+                'password' => $data['password'],
+            ]);
+            $data['user_id'] = $user->id;
+        }
+
+        Empleado::create($data);
 
         return redirect()->route('pos.empleados.index')
             ->with('success', 'Empleado creado correctamente.');
@@ -43,6 +56,8 @@ class EmpleadoController extends Controller
 
     public function edit(Empleado $empleado)
     {
+        $empleado->load('user');
+
         return inertia('Pos/Empleados/Edit', [
             'empleado' => $empleado,
         ]);
@@ -50,7 +65,30 @@ class EmpleadoController extends Controller
 
     public function update(UpdateEmpleadoRequest $request, Empleado $empleado)
     {
-        $empleado->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->boolean('crear_usuario')) {
+            $userData = [
+                'name'     => $data['name'],
+                'email'    => $data['email'],
+            ];
+
+            if (!empty($data['password'])) {
+                $userData['password'] = $data['password'];
+            }
+
+            if ($empleado->user_id) {
+                $empleado->user->update($userData);
+            } else {
+                if (empty($data['password'])) {
+                    $userData['password'] = str()->random(16);
+                }
+                $user = User::create($userData);
+                $data['user_id'] = $user->id;
+            }
+        }
+
+        $empleado->update($data);
 
         return redirect()->route('pos.empleados.index')
             ->with('success', 'Empleado actualizado correctamente.');

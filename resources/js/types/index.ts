@@ -39,6 +39,24 @@ export interface Empleado {
     dni: string;
     cargo: string | null;
     activo: boolean;
+    user_id: number | null;
+    user?: User | null;
+}
+
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+}
+
+export interface Cliente {
+    id: number;
+    dni: string;
+    nombres: string;
+    apellidos: string;
+    telefono: string | null;
+    email: string | null;
+    activo: boolean;
 }
 
 export interface ProductoLocal {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
@@ -12,7 +13,13 @@ const form = useForm({
     dni: '',
     cargo: '',
     activo: true,
+    crear_usuario: false,
+    name: '',
+    email: '',
+    password: '',
 });
+
+const crearUsuario = computed(() => form.crear_usuario);
 
 function submit() {
     form.post(route('pos.empleados.store'), {
@@ -55,6 +62,33 @@ function submit() {
                     <span class="text-sm text-gray-300">Activo</span>
                 </label>
             </FormField>
+
+            <!-- Separator -->
+            <hr class="border-gray-800" />
+
+            <!-- Cuenta de usuario -->
+            <FormField label="Cuenta de Usuario">
+                <label class="flex items-center gap-2">
+                    <input v-model="form.crear_usuario" type="checkbox" class="rounded border-gray-700 bg-gray-900 text-blue-600" />
+                    <span class="text-sm text-gray-300">¿Crear cuenta de acceso?</span>
+                </label>
+            </FormField>
+
+            <template v-if="crearUsuario">
+                <div class="grid grid-cols-2 gap-4">
+                    <FormField label="Nombre de usuario" required :error="form.errors.name">
+                        <Input v-model="form.name" placeholder="Ej: Juan Pérez" />
+                    </FormField>
+
+                    <FormField label="Correo electrónico" required :error="form.errors.email">
+                        <Input v-model="form.email" type="email" placeholder="correo@ejemplo.com" />
+                    </FormField>
+                </div>
+
+                <FormField label="Contraseña" required :error="form.errors.password">
+                    <Input v-model="form.password" type="password" placeholder="••••••••" />
+                </FormField>
+            </template>
         </FormPage>
     </AppPageShell>
 </template>

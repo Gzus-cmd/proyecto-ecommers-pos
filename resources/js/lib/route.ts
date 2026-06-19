@@ -7,6 +7,14 @@ type Primitive = string | number | boolean | null | undefined;
 type Params = Record<string, Primitive> | Primitive;
 
 const ROUTES: Record<string, string> = {
+    // ── Auth ────────────────────────────────────────────────
+    'login': '/login',
+    'login.store': '/login',
+    'logout': '/logout',
+
+    // ── Dashboard ───────────────────────────────────────────
+    'pos.dashboard': '/pos',
+
     // ── Sedes ──────────────────────────────────────────────
     'pos.sedes.index': '/pos/sedes',
     'pos.sedes.create': '/pos/sedes/create',
@@ -47,6 +55,14 @@ const ROUTES: Record<string, string> = {
     'pos.empleados.update': '/pos/empleados/{empleado}',
     'pos.empleados.destroy': '/pos/empleados/{empleado}',
 
+    // ── Clientes ───────────────────────────────────────────
+    'pos.clientes.index': '/pos/clientes',
+    'pos.clientes.create': '/pos/clientes/create',
+    'pos.clientes.store': '/pos/clientes',
+    'pos.clientes.edit': '/pos/clientes/{cliente}/edit',
+    'pos.clientes.update': '/pos/clientes/{cliente}',
+    'pos.clientes.destroy': '/pos/clientes/{cliente}',
+
     // ── Stock ──────────────────────────────────────────────
     'pos.stock.index': '/pos/stock',
     'pos.stock.show': '/pos/stock/{stock}',
@@ -57,9 +73,6 @@ const ROUTES: Record<string, string> = {
 
     // ── Detalle Ventas ─────────────────────────────────────
     'pos.detalle-ventas.index': '/pos/detalle-ventas',
-
-    // ── Welcome ────────────────────────────────────────────
-    'home': '/',
 };
 
 export function route(name: string, params?: Params): string {
