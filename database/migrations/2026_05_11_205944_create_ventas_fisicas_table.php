@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ventas_fisicas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sede_id')->constrained('sedes');
-            $table->foreignId('empleado_id')->constrained('empleados');
+            $table->foreignId('user_id')->constrained('users');
             $table->timestamp('fecha_venta')->useCurrent();
             $table->decimal('subtotal', 10, 2);
             $table->decimal('impuesto', 10, 2);
