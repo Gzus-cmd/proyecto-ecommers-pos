@@ -11,10 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop the table if it exists from the old broken migration
-        Schema::dropIfExists('detalle_ventas');
-
-        // Create with the correct schema
         Schema::create('detalle_ventas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('venta_id')->constrained('ventas_fisicas');

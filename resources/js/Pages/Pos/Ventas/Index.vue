@@ -13,7 +13,7 @@ defineProps<{
 const columns = [
     { key: 'id', label: 'N° Venta' },
     { key: 'sede', label: 'Sede' },
-    { key: 'empleado', label: 'Empleado' },
+    { key: 'user', label: 'Usuario' },
     { key: 'fecha_venta', label: 'Fecha' },
     { key: 'total', label: 'Total' },
 ];
@@ -33,13 +33,13 @@ const columns = [
             :to="ventas.to"
             :search="search"
             base-route="pos.ventas.index"
-            search-placeholder="Buscar por sede o empleado..."
+            search-placeholder="Buscar por sede o usuario..."
         >
             <template #cell-sede="{ row }">
                 <span>{{ (row as unknown as VentaFisica).sede?.nombre || '-' }}</span>
             </template>
-            <template #cell-empleado="{ row }">
-                <span>{{ (row as unknown as VentaFisica).empleado?.nombres }} {{ (row as unknown as VentaFisica).empleado?.apellidos }}</span>
+            <template #cell-user="{ row }">
+                <span>{{ (row as unknown as VentaFisica).user?.name || '-' }}</span>
             </template>
             <template #cell-fecha_venta="{ row }">
                 <span>{{ new Date((row as unknown as VentaFisica).fecha_venta).toLocaleDateString() }}</span>

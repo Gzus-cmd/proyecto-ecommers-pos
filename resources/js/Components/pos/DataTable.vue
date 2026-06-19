@@ -2,6 +2,7 @@
 import { router } from '@inertiajs/vue3';
 import SearchInput from '@/Components/pos/SearchInput.vue';
 import EmptyState from '@/Components/pos/EmptyState.vue';
+import { route } from '@/lib/route';
 
 interface Column {
     key: string;

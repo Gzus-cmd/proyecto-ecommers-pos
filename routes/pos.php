@@ -6,7 +6,6 @@ use App\Http\Controllers\Pos\SedeController;
 use App\Http\Controllers\Pos\ProductoLocalController;
 use App\Http\Controllers\Pos\LoteLocalController;
 use App\Http\Controllers\Pos\MetodoPagoController;
-use App\Http\Controllers\Pos\EmpleadoController;
 use App\Http\Controllers\Pos\ClienteController;
 use App\Http\Controllers\Pos\StockLocalController;
 use App\Http\Controllers\Pos\VentaFisicaController;
@@ -19,7 +18,6 @@ Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
     Route::resource('productos', ProductoLocalController::class)->except(['show']);
     Route::resource('lotes', LoteLocalController::class)->except(['show']);
     Route::resource('metodos-pago', MetodoPagoController::class)->except(['show']);
-    Route::resource('empleados', EmpleadoController::class)->except(['show']);
     Route::resource('clientes', ClienteController::class)->except(['show']);
 
     Route::get('stock', [StockLocalController::class, 'index'])->name('stock.index');

@@ -32,17 +32,6 @@ export interface MetodoPago {
     activo: boolean;
 }
 
-export interface Empleado {
-    id: number;
-    nombres: string;
-    apellidos: string;
-    dni: string;
-    cargo: string | null;
-    activo: boolean;
-    user_id: number | null;
-    user?: User | null;
-}
-
 export interface User {
     id: number;
     name: string;
@@ -93,14 +82,14 @@ export interface StockLocal {
 export interface VentaFisica {
     id: number;
     sede_id: number;
-    empleado_id: number;
+    user_id: number;
     fecha_venta: string;
     subtotal: number;
     impuesto: number;
     total: number;
     metodo_pago_id: number;
     sede?: Sede;
-    empleado?: Empleado;
+    user?: User;
     metodo_pago?: MetodoPago;
     detalles?: DetalleVenta[];
 }

@@ -32,8 +32,8 @@ defineProps<{
                         <span class="text-white">{{ venta.sede?.nombre || '-' }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Empleado</span>
-                        <span class="text-white">{{ venta.empleado?.nombres }} {{ venta.empleado?.apellidos }}</span>
+                        <span class="text-gray-400">Usuario</span>
+                        <span class="text-white">{{ venta.user?.name || '-' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Método de Pago</span>

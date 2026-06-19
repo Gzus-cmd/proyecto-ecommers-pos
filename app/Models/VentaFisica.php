@@ -10,7 +10,7 @@ class VentaFisica extends Model
 
     protected $fillable = [
         'sede_id',
-        'empleado_id',
+        'user_id',
         'fecha_venta',
         'subtotal',
         'impuesto',
@@ -33,9 +33,9 @@ class VentaFisica extends Model
         return $this->belongsTo(Sede::class);
     }
 
-    public function empleado()
+    public function user()
     {
-        return $this->belongsTo(Empleado::class);
+        return $this->belongsTo(User::class);
     }
 
     public function metodoPago()

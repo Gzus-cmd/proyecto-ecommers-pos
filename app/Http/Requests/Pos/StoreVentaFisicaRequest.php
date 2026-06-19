@@ -15,7 +15,7 @@ class StoreVentaFisicaRequest extends FormRequest
     {
         return [
             'sede_id' => ['required', 'integer', 'exists:sedes,id'],
-            'empleado_id' => ['required', 'integer', 'exists:empleados,id'],
+            'user_id' => ['required', 'integer', 'exists:users,id'],
             'fecha_venta' => ['nullable', 'date'],
             'subtotal' => ['required', 'numeric', 'min:0'],
             'impuesto' => ['required', 'numeric', 'min:0'],

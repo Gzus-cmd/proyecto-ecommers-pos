@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import Button from '@/Components/pos/ui/Button.vue';
+import { route } from '@/lib/route';
 
 const form = useForm({
     email: '',
