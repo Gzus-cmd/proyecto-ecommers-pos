@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title inertia>{{ config('app.name', 'POS') }}</title>
-        @vite('resources/js/app.ts')
+        @vite(['resources/css/app.css', 'resources/js/app.ts'])
         @inertiaHead
         @routes
     </head>
