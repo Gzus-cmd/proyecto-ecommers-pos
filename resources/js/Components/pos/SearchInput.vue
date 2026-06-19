@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { useDebounceFn } from '@vueuse/core';
 
 const props = withDefaults(
     defineProps<{
@@ -19,9 +18,14 @@ const emit = defineEmits<{
 
 const localValue = ref(props.modelValue);
 
-const debouncedEmit = useDebounceFn((value: string) => {
-    emit('update:modelValue', value);
-}, 400);
+let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function debouncedEmit(value: string): void {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        emit('update:modelValue', value);
+    }, 400);
+}
 
 watch(localValue, (val) => {
     if (val !== props.modelValue) {

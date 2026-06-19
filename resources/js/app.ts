@@ -12,6 +12,11 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) });
         app.use(plugin);
         app.component('Toaster', Toaster);
-        app.mount(el);
+
+        if (el) {
+            app.mount(el);
+        }
+
+        return app;
     },
 });
