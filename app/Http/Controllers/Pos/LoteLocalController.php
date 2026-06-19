@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Http\Controllers\Pos;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Pos\StoreLoteLocalRequest;
+use App\Http\Requests\Pos\UpdateLoteLocalRequest;
+use App\Models\LoteLocal;
+use App\Models\ProductoLocal;
+use Illuminate\Http\Request;
+
+class LoteLocalController extends Controller
+{
+    public function index(Request $request)
+    {
+        $search = $request->get('search');
+        $lotes = LoteLocal::with('producto')
+            ->when($search, function ($query, $search) {
+                $query->where('numero_lote', 'like', "%{$search}%")
+                    ->orWhere('sku_producto', 'like', "%{$search}%");
+            })
+            ->orderBy('fecha_vencimiento')
+            ->paginate(10);
+
+        return inertia('Pos/Lotes/Index', [
+            'lotes' => $lotes,
+            'search' => $search,
+        ]);
+    }
+
+    public function create()
+    {
+        $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
+
+        return inertia('Pos/Lotes/Create', [
+            'productos' => $productos,
+        ]);
+    }
+
+    public function store(StoreLoteLocalRequest $request)
+    {
+        LoteLocal::create($request->validated());
+
+        return redirect()->route('pos.lotes.index')
+            ->with('success', 'Lote creado correctamente.');
+    }
+
+    public function edit(LoteLocal $lote)
+    {
+        $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
+
+        return inertia('Pos/Lotes/Edit', [
+            'lote' => $lote->load('producto'),
+            'productos' => $productos,
+        ]);
+    }
+
+    public function update(UpdateLoteLocalRequest $request, LoteLocal $lote)
+    {
+        $lote->update($request->validated());
+
+        return redirect()->route('pos.lotes.index')
+            ->with('success', 'Lote actualizado correctamente.');
+    }
+
+    public function destroy(LoteLocal $lote)
+    {
+        $hasStock = $lote->stockLocal()->exists();
+
+        if ($hasStock) {
+            return redirect()->route('pos.lotes.index')
+                ->with('error', 'No se puede eliminar el lote porque tiene stock asociado.');
+        }
+
+        $lote->delete();
+
+        return redirect()->route('pos.lotes.index')
+            ->with('success', 'Lote eliminado correctamente.');
+    }
+}
