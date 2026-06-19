@@ -6,7 +6,6 @@
         <title inertia>{{ config('app.name', 'POS') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.ts'])
         @inertiaHead
-        @routes
     </head>
     <body class="antialiased">
         @inertia

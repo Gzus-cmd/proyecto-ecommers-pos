@@ -2,7 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { Toaster } from 'vue-sonner';
-import { route } from 'ziggy-js';
+import { route } from '@/lib/route';
 
 createInertiaApp({
     resolve: (name) => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -39,10 +39,10 @@ function handleDelete() {
 
 function showFlash() {
     const page = (router as any).page;
-    if (page.props.flash?.success) toast.success(page.props.flash.success);
-    if (page.props.flash?.error) toast.error(page.props.flash.error);
+    if (page?.props?.flash?.success) toast.success(page.props.flash.success);
+    if (page?.props?.flash?.error) toast.error(page.props.flash.error);
 }
-showFlash();
+onMounted(() => showFlash());
 
 const columns = [
     { key: 'nombre', label: 'Nombre' },
