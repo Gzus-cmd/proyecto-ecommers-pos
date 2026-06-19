@@ -46,7 +46,7 @@ function onSearch(value: string) {
 <template>
     <div>
         <div class="mb-4">
-            <slot name="actions">
+            <slot name="toolbar">
                 <div class="flex items-center justify-between gap-4">
                     <div class="w-72">
                         <SearchInput
