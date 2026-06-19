@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pos_detalle_ventas', function (Blueprint $table) {
+        Schema::create('stock_local', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('sede_id')->constrained('sedes');
+            $table->foreignId('lote_local_id')->constrained('lotes_local');
+            $table->integer('cantidad_disponible');
             $table->timestamps();
         });
     }
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pos_detalle_ventas');
+        Schema::dropIfExists('stock_local');
     }
 };

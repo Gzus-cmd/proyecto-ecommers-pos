@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pos_ventas_fisicas', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        Schema::create('metodos_pago', function (Blueprint $table) {
+        $table->id();
+        $table->string('nombre'); // Ej: Efectivo, Tarjeta, Yape, Plin
+        $table->boolean('activo')->default(true);
+        $table->timestamps();
+    });
     }
 
     /**
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pos_ventas_fisicas');
+        Schema::dropIfExists('metodos_pago');
     }
 };
