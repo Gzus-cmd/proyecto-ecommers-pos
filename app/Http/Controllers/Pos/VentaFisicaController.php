@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreVentaFisicaRequest;
 use App\Models\Cliente;
+use App\Models\LoteLocal;
 use App\Models\MetodoPago;
 use App\Models\ProductoLocal;
 use App\Models\VentaFisica;
@@ -40,11 +41,15 @@ class VentaFisicaController extends Controller
         $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
         $metodosPago = MetodoPago::activos()->orderBy('nombre')->get();
         $clientes = Cliente::orderBy('apellidos')->get();
+        $lotes = LoteLocal::with('producto')
+            ->orderBy('fecha_vencimiento')
+            ->get();
 
         return inertia('Pos/Ventas/Create', [
             'productos' => $productos,
             'metodosPago' => $metodosPago,
             'clientes' => $clientes,
+            'lotes' => $lotes,
         ]);
     }
 
@@ -68,6 +73,7 @@ class VentaFisicaController extends Controller
                 DetalleVenta::create([
                     'venta_id' => $venta->id,
                     'producto_sku' => $detalle['producto_sku'],
+                    'lote_local_id' => $detalle['lote_local_id'],
                     'cantidad' => $detalle['cantidad'],
                     'precio_unitario' => $detalle['precio_unitario'],
                     'subtotal' => $detalle['subtotal'],

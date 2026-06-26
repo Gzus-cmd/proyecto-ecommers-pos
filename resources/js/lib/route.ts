@@ -60,6 +60,7 @@ const ROUTES: Record<string, string> = {
     // ── Stock ──────────────────────────────────────────────
     'pos.stock.index': '/pos/stock',
     'pos.stock.show': '/pos/stock/{stock}',
+    'pos.stock.retirar': '/pos/stock/{lote}/retirar',
 
     // ── Ventas ─────────────────────────────────────────────
     'pos.ventas.index': '/pos/ventas',

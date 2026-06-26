@@ -221,15 +221,15 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                     {{ fechaInicio ? formatFechaDDMM(fechaInicio) : '' }} — {{ fechaFin ? formatFechaDDMM(fechaFin) : '' }}
                 </p>
 
-                <div class="overflow-x-auto">
-                    <div class="flex items-end gap-3" style="height: 160px; min-width: 480px">
+                <div class="overflow-x-auto custom-scrollbar pb-2">
+                    <div class="flex items-end gap-3 pt-8" style="min-height: 200px; min-width: 480px">
                         <div
                             v-for="dia in ventasData"
                             :key="dia.fecha"
-                            class="flex flex-col items-center justify-end gap-2"
+                            class="flex flex-col items-center justify-end gap-1"
                             style="min-width: 32px; max-width: 48px; flex: 1"
                         >
-                            <span class="text-xs font-medium text-gray-300">{{ dia.total }}</span>
+                            <span class="text-xs font-medium text-gray-300 leading-none">{{ dia.total }}</span>
                             <div
                                 class="w-full rounded-t-md transition-all duration-500"
                                 :style="{
@@ -237,7 +237,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                     background: 'linear-gradient(to top, #3b82f6, #60a5fa)',
                                 }"
                             />
-                            <span class="text-xs text-gray-500">{{ formatDate(dia.fecha) }}</span>
+                            <span class="text-xs text-gray-500 pt-1">{{ formatDate(dia.fecha) }}</span>
                         </div>
                     </div>
                 </div>
@@ -580,3 +580,19 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
         </Teleport>
     </AppPageShell>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+</style>

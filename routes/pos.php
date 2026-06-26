@@ -23,6 +23,7 @@ Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
     Route::resource('clientes', ClienteController::class)->except(['show']);
 
     Route::get('stock', [StockLocalController::class, 'index'])->name('stock.index');
+    Route::post('stock/{lote}/retirar', [LoteLocalController::class, 'retirar'])->name('stock.retirar');
 
     Route::get('ventas', [VentaFisicaController::class, 'index'])->name('ventas.index');
     Route::get('ventas/crear', [VentaFisicaController::class, 'create'])->name('ventas.create');

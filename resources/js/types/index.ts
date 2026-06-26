@@ -96,9 +96,11 @@ export interface DetalleVenta {
     id: number;
     venta_id: number;
     producto_sku: string;
+    lote_local_id?: number;
     cantidad: number;
     precio_unitario: number;
     subtotal: number;
     venta?: VentaFisica;
     producto?: ProductoLocal;
+    lote?: LoteLocal;
 }

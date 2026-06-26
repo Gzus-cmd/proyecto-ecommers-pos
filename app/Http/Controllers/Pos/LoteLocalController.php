@@ -90,6 +90,14 @@ class LoteLocalController extends Controller
         ]);
     }
 
+    public function retirar(LoteLocal $lote)
+    {
+        $lote->update(['cantidad_disponible' => 0]);
+
+        return redirect()->route('pos.stock.index')
+            ->with('success', 'Stock retirado correctamente.');
+    }
+
     public function destroy(LoteLocal $lote)
     {
         $hasStock = $lote->stockLocal()->exists();

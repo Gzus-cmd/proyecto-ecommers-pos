@@ -9,16 +9,18 @@ import Input from '@/Components/pos/ui/Input.vue';
 import Select from '@/Components/pos/ui/Select.vue';
 import Button from '@/Components/pos/ui/Button.vue';
 import { toast } from 'vue-sonner';
-import type { ProductoLocal, MetodoPago, Cliente } from '@/types';
+import type { ProductoLocal, MetodoPago, Cliente, LoteLocal } from '@/types';
 
 const props = defineProps<{
     productos: ProductoLocal[];
     metodosPago: MetodoPago[];
     clientes: Cliente[];
+    lotes: LoteLocal[];
 }>();
 
 interface DetalleForm {
     producto_sku: string;
+    lote_local_id: number | '';
     cantidad: number;
     precio_unitario: number;
     subtotal: number;
@@ -54,6 +56,12 @@ function openProductModal() {
     showProductModal.value = true;
 }
 
+function lotesPorProducto(sku: string): LoteLocal[] {
+    return props.lotes.filter(
+        (l) => l.sku_producto === sku && (l as any).stock_actual > 0,
+    );
+}
+
 function selectProduct(sku: string) {
     const existente = form.detalles.find((d) => d.producto_sku === sku);
     if (existente) {
@@ -63,8 +71,15 @@ function selectProduct(sku: string) {
     const producto = props.productos.find((p) => p.sku === sku);
     if (!producto) return;
 
+    const lotes = lotesPorProducto(sku);
+    if (lotes.length === 0) {
+        toast.error('No hay lotes disponibles para este producto.');
+        return;
+    }
+
     form.detalles.push({
         producto_sku: sku,
+        lote_local_id: lotes.length === 1 ? lotes[0].id : '',
         cantidad: 1,
         precio_unitario: Number(producto.precio_venta),
         subtotal: Number(producto.precio_venta),
@@ -104,6 +119,12 @@ function submit() {
     }
     if (!form.metodo_pago_id) {
         toast.error('Debe seleccionar un método de pago.');
+        return;
+    }
+
+    const sinLote = form.detalles.find((d) => !d.lote_local_id);
+    if (sinLote) {
+        toast.error('Debe seleccionar un lote para cada producto.');
         return;
     }
 
@@ -153,6 +174,7 @@ function submit() {
                             <thead>
                                 <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-400">
                                     <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3 w-44">Lote</th>
                                     <th class="px-4 py-3 w-24">Cantidad</th>
                                     <th class="px-4 py-3 w-28">Precio Unit.</th>
                                     <th class="px-4 py-3 w-28">Subtotal</th>
@@ -163,6 +185,22 @@ function submit() {
                                 <tr v-for="(det, i) in form.detalles" :key="i" class="hover:bg-gray-800/50">
                                     <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-300">
                                         {{ getProductName(det.producto_sku) }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select
+                                            :value="det.lote_local_id"
+                                            @change="(e) => { det.lote_local_id = Number((e.target as HTMLSelectElement).value); }"
+                                            class="w-full rounded-lg border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="" disabled>Seleccionar lote</option>
+                                            <option
+                                                v-for="l in lotesPorProducto(det.producto_sku)"
+                                                :key="l.id"
+                                                :value="l.id"
+                                            >
+                                                {{ l.numero_lote }} — vence: {{ l.fecha_vencimiento }} (disp: {{ (l as any).stock_actual }})
+                                            </option>
+                                        </select>
                                     </td>
                                     <td class="px-4 py-3">
                                         <input

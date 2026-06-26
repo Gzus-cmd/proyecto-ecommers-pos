@@ -21,6 +21,7 @@ class StoreVentaFisicaRequest extends FormRequest
             'total' => ['required', 'numeric', 'min:0'],
             'detalles' => ['required', 'array', 'min:1'],
             'detalles.*.producto_sku' => ['required', 'string', 'exists:productos_local,sku'],
+            'detalles.*.lote_local_id' => ['required', 'integer', 'exists:lotes_local,id'],
             'detalles.*.cantidad' => ['required', 'integer', 'min:1'],
             'detalles.*.precio_unitario' => ['required', 'numeric', 'min:0'],
             'detalles.*.subtotal' => ['required', 'numeric', 'min:0'],

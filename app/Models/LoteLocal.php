@@ -12,6 +12,8 @@ class LoteLocal extends Model
 
     protected $table = 'lotes_local';
 
+    protected $appends = ['stock_actual'];
+
     protected $fillable = [
         'sku_producto',
         'numero_lote',
