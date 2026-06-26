@@ -32,6 +32,7 @@ const form = useForm({
     subtotal: 0,
     impuesto: 0,
     total: 0,
+    nuevo_cliente_dni: '',
 });
 
 // Client local filter
@@ -61,36 +62,24 @@ async function crearYSeleccionarCliente() {
         return;
     }
 
-    creandoCliente.value = true;
-    try {
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        const res = await fetch(route('pos.clientes.store'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': token ?? '',
-            },
-            body: JSON.stringify({ dni }),
-        });
-
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({ message: 'Error al crear cliente' }));
-            toast.error(err.message || 'Error al crear cliente');
-            return;
-        }
-
-        const nuevo: Cliente = await res.json();
-        clientesList.value.push(nuevo);
-        form.cliente_id = String(nuevo.id);
+    // Verificar si ya existe
+    const existe = clientesList.value.find((c) => c.dni === dni);
+    if (existe) {
+        form.cliente_id = String(existe.id);
         showNuevoClienteForm.value = false;
         nuevoClienteDni.value = '';
-        toast.success('Cliente registrado y seleccionado');
-    } catch {
-        toast.error('Error de red al crear cliente');
-    } finally {
-        creandoCliente.value = false;
+        toast.success('Cliente encontrado y seleccionado');
+        return;
     }
+
+    // Agregar el nuevo cliente a la lista para enviarlo con la venta
+    const tempId = -Date.now();
+    clientesList.value.push({ id: tempId, dni, nombres: '', apellidos: '', telefono: null, email: null });
+    form.cliente_id = String(tempId);
+    form.nuevo_cliente_dni = dni;
+    showNuevoClienteForm.value = false;
+    nuevoClienteDni.value = '';
+    toast.success('Cliente registrado y seleccionado');
 }
 
 function cancelarNuevoCliente() {
