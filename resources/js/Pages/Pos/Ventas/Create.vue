@@ -50,6 +50,18 @@ const filteredClientes = computed(() => {
     );
 });
 
+const formValido = computed(() => {
+    if (form.detalles.length === 0) return false;
+    if (!form.metodo_pago_id) return false;
+    const invalido = form.detalles.some((d, i) => {
+        if (!d.lote_local_id) return true;
+        if (d.cantidad < 1) return true;
+        if (d.cantidad > loteStock(i)) return true;
+        return false;
+    });
+    return !invalido;
+});
+
 // Quick client creation
 const showNuevoClienteForm = ref(false);
 const nuevoClienteDni = ref('');
@@ -114,12 +126,11 @@ function lotesPorProducto(sku: string): LoteLocal[] {
     );
 }
 
+function getStockTotal(sku: string): number {
+    return lotesPorProducto(sku).reduce((sum, l) => sum + ((l as any).stock_actual || 0), 0);
+}
+
 function selectProduct(sku: string) {
-    const existente = form.detalles.find((d) => d.producto_sku === sku);
-    if (existente) {
-        toast.error('El producto ya está agregado.');
-        return;
-    }
     const producto = props.productos.find((p) => p.sku === sku);
     if (!producto) return;
 
@@ -162,6 +173,39 @@ function recalcTotals() {
 function getProductName(sku: string): string {
     const p = props.productos.find((p) => p.sku === sku);
     return p ? `${p.nombre_comercial} (${p.sku})` : sku;
+}
+
+function loteStock(idx: number): number {
+    const det = form.detalles[idx];
+    if (!det || !det.lote_local_id) return 0;
+    const lote = props.lotes.find((l) => l.id === det.lote_local_id);
+    return lote ? ((lote as any).stock_actual || 0) : 0;
+}
+
+function onLoteChange(idx: number, event: Event) {
+    const loteId = Number((event.target as HTMLSelectElement).value);
+    const det = form.detalles[idx];
+    det.lote_local_id = loteId;
+
+    const lote = props.lotes.find((l) => l.id === loteId);
+    if (lote) {
+        const producto = props.productos.find((p) => p.sku === det.producto_sku);
+        if (producto) {
+            det.precio_unitario = Number(producto.precio_venta);
+        }
+    }
+    updateSubtotal(idx);
+}
+
+function onCantidadChange(idx: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    let val = Number(target.value);
+    const maxStock = loteStock(idx);
+    if (val > maxStock) val = maxStock;
+    if (val < 1) val = 1;
+    form.detalles[idx].cantidad = val;
+    target.value = String(val);
+    updateSubtotal(idx);
 }
 
 function submit() {
@@ -241,7 +285,7 @@ function submit() {
                                     <td class="px-4 py-3">
                                         <select
                                             :value="det.lote_local_id"
-                                            @change="(e) => { det.lote_local_id = Number((e.target as HTMLSelectElement).value); }"
+                                            @change="onLoteChange(i, $event)"
                                             class="w-full rounded-lg border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         >
                                             <option value="" disabled>Seleccionar lote</option>
@@ -258,8 +302,9 @@ function submit() {
                                         <input
                                             type="number"
                                             min="1"
+                                            :max="loteStock(i)"
                                             :value="det.cantidad"
-                                            @input="(e) => { det.cantidad = Number((e.target as HTMLInputElement).value); updateSubtotal(i); }"
+                                            @input="onCantidadChange(i, $event)"
                                             class="w-20 rounded-lg border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         />
                                     </td>
@@ -389,7 +434,7 @@ function submit() {
                         </div>
                     </Card>
 
-                    <Button type="submit" class="w-full" size="lg" :loading="form.processing">
+                    <Button type="submit" class="w-full" size="lg" :disabled="!formValido" :loading="form.processing">
                         <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -438,6 +483,7 @@ function submit() {
                             >
                                 <span class="font-medium text-white">{{ p.nombre_comercial }}</span>
                                 <span class="ml-2 text-gray-500">{{ p.sku }}</span>
+                                <span class="ml-2 text-emerald-400 text-xs">Stock: {{ getStockTotal(p.sku) }}</span>
                                 <span class="float-right text-blue-400">S/ {{ Number(p.precio_venta).toFixed(2) }}</span>
                             </button>
 
