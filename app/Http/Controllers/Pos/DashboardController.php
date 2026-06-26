@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\DetalleVenta;
 use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
 use App\Models\VentaFisica;
@@ -16,14 +17,31 @@ class DashboardController extends Controller
         $ventasHoy = VentaFisica::whereDate('created_at', today())->count();
         $ventasHoyMonto = (float) VentaFisica::whereDate('created_at', today())->sum('total');
 
-        // Stock bajo calculado desde lotes (stock_actual < 10)
+        // ── Filtro de fechas ──────────────────────────────────────────
+        $fechaInicio = $request->input('fecha_inicio', now()->subDays(29)->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', now()->format('Y-m-d'));
+        $inicio = $fechaInicio . ' 00:00:00';
+        $fin = $fechaFin . ' 23:59:59';
+
+        // ── Stock bajo (stock_actual < 10) + agotados (stock_actual = 0) ──
         $lotes = LoteLocal::with('producto')->get();
         $stockBajo = 0;
         $stockBajoProductos = collect();
+        $stockAgotado = 0;
+        $stockAgotadoProductos = collect();
 
         foreach ($lotes as $lote) {
             $stockActual = $lote->stock_actual;
-            if ($stockActual > 0 && $stockActual < 10) {
+            if ($stockActual === 0) {
+                $stockAgotado++;
+                $stockAgotadoProductos->push([
+                    'producto' => $lote->producto?->nombre_comercial ?? '-',
+                    'sku' => $lote->sku_producto,
+                    'cantidad' => $stockActual,
+                    'lote' => $lote->numero_lote,
+                    'sede' => '-',
+                ]);
+            } elseif ($stockActual > 0 && $stockActual < 10) {
                 $stockBajo++;
                 $stockBajoProductos->push([
                     'producto' => $lote->producto?->nombre_comercial ?? '-',
@@ -35,8 +53,8 @@ class DashboardController extends Controller
             }
         }
 
-        // Productos por vencer (<= 30 días)
-        $fechaLimite = now()->addDays(30);
+        // ── Productos por vencer (<= 90 días) ─────────────────────────
+        $fechaLimite = now()->addDays(90);
         $productosPorVencer = ProductoLocal::where('fecha_vencimiento', '<=', $fechaLimite)
             ->whereNotNull('fecha_vencimiento')
             ->orderBy('fecha_vencimiento')
@@ -53,19 +71,20 @@ class DashboardController extends Controller
 
         $productosPorVencerCount = $productosPorVencer->count();
 
-        // Ventas por día (últimos 7 días)
+        // ── Ventas por día (según rango de fechas) ────────────────────
         $ventasPorDia = VentaFisica::query()
-            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
+            ->whereBetween('created_at', [$inicio, $fin])
             ->selectRaw('DATE(created_at) as fecha, COUNT(*) as total, SUM(total) as monto')
             ->groupBy('fecha')
             ->orderBy('fecha')
             ->get()
             ->keyBy('fecha');
 
-        // Asegurar que los 7 días tengan datos (rellenar con 0)
+        // Rellenar todos los días del rango con 0
         $dias = collect();
-        for ($i = 6; $i >= 0; $i--) {
-            $fecha = now()->subDays($i)->format('Y-m-d');
+        $diferenciaDias = now()->parse($fechaInicio)->diffInDays(now()->parse($fechaFin));
+        for ($i = $diferenciaDias; $i >= 0; $i--) {
+            $fecha = now()->parse($fechaFin)->subDays($i)->format('Y-m-d');
             $dia = $ventasPorDia->get($fecha);
             $dias->push([
                 'fecha' => $fecha,
@@ -74,23 +93,47 @@ class DashboardController extends Controller
             ]);
         }
 
-        // Productos por estado
+        // ── Top 10 productos más vendidos en el rango ────────────────
+        $topProductos = DetalleVenta::query()
+            ->join('ventas_fisicas', 'detalle_ventas.venta_id', '=', 'ventas_fisicas.id')
+            ->whereBetween('ventas_fisicas.created_at', [$inicio, $fin])
+            ->selectRaw('producto_sku, SUM(cantidad) as total_vendido, SUM(subtotal) as total_monto')
+            ->groupBy('producto_sku')
+            ->orderByDesc('total_vendido')
+            ->limit(10)
+            ->get()
+            ->map(function ($item) {
+                $producto = ProductoLocal::find($item->producto_sku);
+                return [
+                    'sku' => $item->producto_sku,
+                    'nombre_comercial' => $producto?->nombre_comercial ?? '-',
+                    'total_vendido' => (int) $item->total_vendido,
+                    'total_monto' => (float) $item->total_monto,
+                ];
+            });
+
+        // ── Productos por estado ──────────────────────────────────────
         $activos = ProductoLocal::where('activo', true)->count();
         $inactivos = ProductoLocal::where('activo', false)->count();
 
         return inertia('Pos/Dashboard/Index', [
-            'totalProductos'  => $totalProductos,
-            'ventasHoy'       => $ventasHoy,
-            'ventasHoyMonto'  => $ventasHoyMonto,
-            'stockBajo'       => $stockBajo,
-            'stockBajoProductos' => $stockBajoProductos,
-            'productosPorVencer' => $productosPorVencer,
+            'totalProductos'       => $totalProductos,
+            'ventasHoy'            => $ventasHoy,
+            'ventasHoyMonto'       => $ventasHoyMonto,
+            'stockBajo'            => $stockBajo,
+            'stockBajoProductos'   => $stockBajoProductos,
+            'stockAgotado'         => $stockAgotado,
+            'stockAgotadoProductos'=> $stockAgotadoProductos,
+            'productosPorVencer'   => $productosPorVencer,
             'productosPorVencerCount' => $productosPorVencerCount,
-            'ventasPorDia'    => $dias,
-            'productosPorEstado' => [
+            'ventasPorDia'         => $dias,
+            'productosPorEstado'   => [
                 'activos'   => $activos,
                 'inactivos' => $inactivos,
             ],
+            'topProductos'         => $topProductos,
+            'fechaInicio'          => $fechaInicio,
+            'fechaFin'             => $fechaFin,
         ]);
     }
 }

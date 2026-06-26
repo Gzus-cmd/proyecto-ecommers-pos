@@ -40,6 +40,22 @@ class LoteLocalController extends Controller
     public function store(StoreLoteLocalRequest $request)
     {
         $data = $request->validated();
+
+        // Si se envía un array de lotes (recepción múltiple)
+        if (isset($data['lotes']) && is_array($data['lotes'])) {
+            \DB::transaction(function () use ($data) {
+                foreach ($data['lotes'] as $loteData) {
+                    $loteData['user_id'] = auth()->id();
+                    LoteLocal::create($loteData);
+                }
+            });
+
+            $cantidad = count($data['lotes']);
+            return redirect()->route('pos.lotes.index')
+                ->with('success', "{$cantidad} lotes creados correctamente.");
+        }
+
+        // Compatibilidad con formulario simple (un solo lote)
         $data['user_id'] = auth()->id();
         LoteLocal::create($data);
 

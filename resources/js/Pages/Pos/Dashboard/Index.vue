@@ -26,30 +26,50 @@ interface StockBajoItem {
     sede: string;
 }
 
+interface TopProducto {
+    sku: string;
+    nombre_comercial: string;
+    total_vendido: number;
+    total_monto: number;
+}
+
 const props = withDefaults(defineProps<{
     totalProductos?: number;
     ventasHoy?: number;
     ventasHoyMonto?: number;
     stockBajo?: number;
     stockBajoProductos?: StockBajoItem[];
+    stockAgotado?: number;
+    stockAgotadoProductos?: StockBajoItem[];
     productosPorVencer?: ProductoVencer[];
     productosPorVencerCount?: number;
     ventasPorDia?: VentaDia[];
     productosPorEstado?: { activos: number; inactivos: number };
+    topProductos?: TopProducto[];
+    fechaInicio?: string;
+    fechaFin?: string;
 }>(), {
     totalProductos: 0,
     ventasHoy: 0,
     ventasHoyMonto: 0,
     stockBajo: 0,
     stockBajoProductos: () => [],
+    stockAgotado: 0,
+    stockAgotadoProductos: () => [],
     productosPorVencer: () => [],
     productosPorVencerCount: 0,
     ventasPorDia: () => [],
     productosPorEstado: () => ({ activos: 0, inactivos: 0 }),
+    topProductos: () => [],
+    fechaInicio: '',
+    fechaFin: '',
 });
 
 const showVencerModal = ref(false);
 const showStockBajoModal = ref(false);
+
+const fechaInicioModel = ref(props.fechaInicio);
+const fechaFinModel = ref(props.fechaFin);
 
 const productosVencidos = computed(() =>
     (props.productosPorVencer ?? []).filter((p) => p.dias_restantes <= 0),
@@ -60,8 +80,8 @@ const productosProximos = computed(() =>
 
 function diasColor(dias: number): string {
     if (dias <= 0) return 'text-red-400';
-    if (dias <= 7) return 'text-orange-400';
-    if (dias <= 15) return 'text-yellow-400';
+    if (dias <= 30) return 'text-orange-400';
+    if (dias <= 90) return 'text-yellow-400';
     return 'text-emerald-400';
 }
 
@@ -69,6 +89,17 @@ function diasLabel(dias: number): string {
     if (dias <= 0) return 'Vencido';
     if (dias === 1) return '1 día';
     return `${dias} días`;
+}
+
+function reloadWithDates() {
+    router.get(
+        route('pos.dashboard'),
+        {
+            fecha_inicio: fechaInicioModel.value || undefined,
+            fecha_fin: fechaFinModel.value || undefined,
+        },
+        { preserveState: true, preserveScroll: true },
+    );
 }
 
 const cards = computed(() => [
@@ -94,7 +125,8 @@ const cards = computed(() => [
     },
     {
         label: 'Stock Bajo',
-        value: props.stockBajo ?? 0,
+        value: (props.stockBajo ?? 0) + (props.stockAgotado ?? 0),
+        subtitle: `${props.stockAgotado ?? 0} agotados`,
         icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z',
         color: 'red',
         clickable: true,
@@ -118,6 +150,12 @@ function formatDate(fecha: string): string {
     if (!fecha) return '';
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es', { weekday: 'short' });
+}
+
+function formatFechaDDMM(fecha: string): string {
+    if (!fecha) return '';
+    const d = new Date(fecha + 'T00:00:00');
+    return d.toLocaleDateString('es-PE');
 }
 
 function cardClicked(card: ReturnType<typeof cards.value>[0]) {
@@ -178,7 +216,9 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
             <!-- Bar chart: Ventas por día -->
             <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h3 class="mb-1 text-base font-semibold text-white">Ventas por Día</h3>
-                <p class="mb-6 text-sm text-gray-400">Últimos 7 días</p>
+                <p class="mb-6 text-sm text-gray-400">
+                    {{ fechaInicio ? formatFechaDDMM(fechaInicio) : '' }} — {{ fechaFin ? formatFechaDDMM(fechaFin) : '' }}
+                </p>
 
                 <div class="flex items-end justify-between gap-3" style="height: 160px">
                     <div
@@ -258,6 +298,73 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
             </div>
         </div>
 
+        <!-- Top Productos + Filtro de fechas -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+            <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-white">Top Productos Más Vendidos</h3>
+                    <p class="text-sm text-gray-400">Productos con más ventas en el rango seleccionado</p>
+                </div>
+
+                <div class="flex items-end gap-3">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-gray-500">Desde</label>
+                        <input
+                            v-model="fechaInicioModel"
+                            type="date"
+                            class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                        />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs text-gray-500">Hasta</label>
+                        <input
+                            v-model="fechaFinModel"
+                            type="date"
+                            class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                        />
+                    </div>
+                    <button
+                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        @click="reloadWithDates"
+                    >
+                        Filtrar
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm" v-if="topProductos.length > 0">
+                    <thead>
+                        <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                            <th class="pb-3 pr-4 font-medium">#</th>
+                            <th class="pb-3 pr-4 font-medium">Producto</th>
+                            <th class="pb-3 pr-4 font-medium">SKU</th>
+                            <th class="pb-3 pr-4 font-medium text-right">Cantidad Vendida</th>
+                            <th class="pb-3 pr-4 font-medium text-right">Monto Total (S/)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="(item, i) in topProductos"
+                            :key="item.sku"
+                            class="border-b border-gray-800/50"
+                        >
+                            <td class="py-3 pr-4 text-gray-500">{{ i + 1 }}</td>
+                            <td class="py-3 pr-4 text-white font-medium">{{ item.nombre_comercial }}</td>
+                            <td class="py-3 pr-4 text-gray-400">{{ item.sku }}</td>
+                            <td class="py-3 pr-4 text-right text-white">{{ item.total_vendido }}</td>
+                            <td class="py-3 pr-4 text-right text-emerald-400 font-medium">
+                                S/ {{ Number(item.total_monto).toFixed(2) }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="py-8 text-center text-sm text-gray-500">
+                    No hay ventas registradas en este rango de fechas.
+                </div>
+            </div>
+        </div>
+
         <!-- Modal: Stock Bajo -->
         <Teleport to="body">
             <div
@@ -269,7 +376,10 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                     <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
                         <div>
                             <h3 class="text-lg font-bold text-white">Stock Bajo</h3>
-                            <p class="text-sm text-gray-400">Productos con menos de 10 unidades disponibles</p>
+                            <p class="text-sm text-gray-400">
+                                Productos con menos de 10 unidades disponibles
+                                <span v-if="stockAgotado > 0" class="text-red-400">({{ stockAgotado }} agotados)</span>
+                            </p>
                         </div>
                         <button
                             class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
@@ -282,34 +392,76 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                     </div>
 
                     <div class="max-h-96 overflow-y-auto p-6">
-                        <table v-if="stockBajoProductos.length > 0" class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
-                                    <th class="pb-2 pr-4 font-medium">Producto</th>
-                                    <th class="pb-2 pr-4 font-medium">SKU</th>
-                                    <th class="pb-2 pr-4 font-medium">Cantidad</th>
-                                    <th class="pb-2 pr-4 font-medium">Lote</th>
-                                    <th class="pb-2 font-medium">Sede</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr
-                                    v-for="(item, i) in stockBajoProductos"
-                                    :key="i"
-                                    class="border-b border-gray-800/50"
-                                >
-                                    <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
-                                    <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
-                                    <td class="py-2 pr-4">
-                                        <span class="font-medium text-red-400">{{ item.cantidad }}</span>
-                                    </td>
-                                    <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
-                                    <td class="py-2 text-gray-400">{{ item.sede }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <!-- Agotados -->
+                        <div v-if="stockAgotadoProductos.length > 0" class="mb-6">
+                            <h4 class="mb-3 text-sm font-semibold text-red-400">
+                                Agotados ({{ stockAgotadoProductos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Cantidad</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
+                                        <th class="pb-2 font-medium">Sede</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, i) in stockAgotadoProductos"
+                                        :key="i"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
+                                        <td class="py-2 pr-4">
+                                            <span class="font-medium text-red-400">{{ item.cantidad }}</span>
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
+                                        <td class="py-2 text-gray-400">{{ item.sede }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                        <div v-else class="py-8 text-center text-sm text-gray-500">
+                        <!-- Stock bajo -->
+                        <div v-if="stockBajoProductos.length > 0">
+                            <h4 class="mb-3 text-sm font-semibold text-amber-400">
+                                Stock Bajo ({{ stockBajoProductos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Cantidad</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
+                                        <th class="pb-2 font-medium">Sede</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, i) in stockBajoProductos"
+                                        :key="i"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
+                                        <td class="py-2 pr-4">
+                                            <span class="font-medium text-amber-400">{{ item.cantidad }}</span>
+                                        </td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
+                                        <td class="py-2 text-gray-400">{{ item.sede }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            v-if="stockBajoProductos.length === 0 && stockAgotadoProductos.length === 0"
+                            class="py-8 text-center text-sm text-gray-500"
+                        >
                             No hay productos con stock bajo.
                         </div>
                     </div>
@@ -363,7 +515,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                     >
                                         <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
                                         <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
-                                        <td class="py-2 pr-4 text-gray-400">{{ p.fecha_vencimiento }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
                                         <td class="py-2">
                                             <span class="font-medium text-red-400">Vencido</span>
                                         </td>
@@ -394,7 +546,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                     >
                                         <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
                                         <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
-                                        <td class="py-2 pr-4 text-gray-400">{{ p.fecha_vencimiento }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
                                         <td class="py-2">
                                             <span :class="['font-medium', diasColor(p.dias_restantes)]">
                                                 {{ diasLabel(p.dias_restantes) }}

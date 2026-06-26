@@ -44,8 +44,19 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
-function isExpired(date: string): boolean {
-    return new Date(date) < new Date();
+function getEstadoDias(fecha: string): { label: string; clase: string; dias: number } {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const venc = new Date(fecha + 'T00:00:00');
+    const diff = Math.floor((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff <= 0) return { label: 'Vencido', clase: 'text-red-400 bg-red-900/20 border-red-800/50', dias: diff };
+    if (diff <= 90) return { label: 'Por Vencer', clase: 'text-yellow-400 bg-yellow-900/20 border-yellow-800/50', dias: diff };
+    return { label: 'Vigente', clase: 'text-emerald-400 bg-emerald-900/20 border-emerald-800/50', dias: diff };
+}
+
+function formatDate(date: string): string {
+    if (!date) return '-';
+    return new Date(date + 'T00:00:00').toLocaleDateString('es-PE');
 }
 
 const columns = [
@@ -53,6 +64,7 @@ const columns = [
     { key: 'producto', label: 'Producto' },
     { key: 'sku_producto', label: 'SKU' },
     { key: 'fecha_vencimiento', label: 'Vencimiento' },
+    { key: 'estado', label: 'Estado' },
     { key: 'cantidad_disponible', label: 'Cantidad' },
     { key: 'user', label: 'Registrado por' },
 ];
@@ -91,11 +103,23 @@ const columns = [
                 <span>{{ (row as unknown as LoteLocal).producto?.nombre_comercial || '-' }}</span>
             </template>
             <template #cell-fecha_vencimiento="{ row }">
+                <span>{{ formatDate((row as unknown as LoteLocal).fecha_vencimiento) }}</span>
+            </template>
+            <template #cell-estado="{ row }">
                 <div class="flex items-center gap-2">
-                    <span>{{ (row as unknown as LoteLocal).fecha_vencimiento }}</span>
-                    <Badge v-if="isExpired((row as unknown as LoteLocal).fecha_vencimiento)" variant="danger">
-                        Vencido
-                    </Badge>
+                    <span
+                        :class="[
+                            'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
+                            getEstadoDias((row as unknown as LoteLocal).fecha_vencimiento).clase,
+                        ]"
+                    >
+                        {{ getEstadoDias((row as unknown as LoteLocal).fecha_vencimiento).label }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                        {{ getEstadoDias((row as unknown as LoteLocal).fecha_vencimiento).dias > 0
+                            ? getEstadoDias((row as unknown as LoteLocal).fecha_vencimiento).dias + 'd'
+                            : '' }}
+                    </span>
                 </div>
             </template>
             <template #cell-user="{ row }">

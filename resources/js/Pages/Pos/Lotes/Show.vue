@@ -11,8 +11,19 @@ defineProps<{
     lote: LoteLocal;
 }>();
 
-function isExpired(date: string): boolean {
-    return new Date(date) < new Date();
+function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'warning' | 'success' } {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const venc = new Date(fecha + 'T00:00:00');
+    const diff = Math.floor((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    if (diff <= 0) return { label: 'Vencido', variant: 'danger' };
+    if (diff <= 90) return { label: 'Por Vencer', variant: 'warning' };
+    return { label: 'Vigente', variant: 'success' };
+}
+
+function formatDate(date: string): string {
+    if (!date) return '-';
+    return new Date(date + 'T00:00:00').toLocaleDateString('es-PE');
 }
 </script>
 
@@ -62,8 +73,10 @@ function isExpired(date: string): boolean {
                         <div>
                             <span class="block text-gray-500">Fecha de Vencimiento</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-white">{{ lote.fecha_vencimiento }}</span>
-                                <Badge v-if="isExpired(lote.fecha_vencimiento)" variant="danger">Vencido</Badge>
+                                <span class="text-white">{{ formatDate(lote.fecha_vencimiento) }}</span>
+                                <Badge :variant="getEstadoInfo(lote.fecha_vencimiento).variant">
+                                    {{ getEstadoInfo(lote.fecha_vencimiento).label }}
+                                </Badge>
                             </div>
                         </div>
                         <div>
