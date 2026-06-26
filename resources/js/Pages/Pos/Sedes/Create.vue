@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
 import FormField from '@/Components/pos/FormField.vue';

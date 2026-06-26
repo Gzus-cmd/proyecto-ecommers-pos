@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class ProductoLocal extends Model
 {
+    /** @use HasFactory<\Database\Factories\ProductoLocalFactory> */
+    use HasFactory;
+
     protected $table = 'productos_local';
 
     protected $primaryKey = 'sku';
@@ -24,6 +28,7 @@ class ProductoLocal extends Model
         'forma_farmaceutica',
         'requiere_receta',
         'precio_venta',
+        'fecha_vencimiento',
         'activo',
     ];
 
@@ -33,6 +38,7 @@ class ProductoLocal extends Model
             'requiere_receta' => 'boolean',
             'activo' => 'boolean',
             'precio_venta' => 'decimal:2',
+            'fecha_vencimiento' => 'date',
         ];
     }
 

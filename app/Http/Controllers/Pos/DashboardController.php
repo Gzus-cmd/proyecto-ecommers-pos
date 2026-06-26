@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductoLocal;
-use App\Models\Sede;
 use App\Models\StockLocal;
 use App\Models\VentaFisica;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -16,8 +14,26 @@ class DashboardController extends Controller
     {
         $totalProductos = ProductoLocal::count();
         $ventasHoy = VentaFisica::whereDate('created_at', today())->count();
-        $sedesActivas = Sede::where('activo', true)->count();
+        $ventasHoyMonto = VentaFisica::whereDate('created_at', today())->sum('total');
         $stockBajo = StockLocal::where('cantidad_disponible', '<', 10)->count();
+
+        // Productos por vencer (<= 30 días)
+        $fechaLimite = now()->addDays(30);
+        $productosPorVencer = ProductoLocal::where('fecha_vencimiento', '<=', $fechaLimite)
+            ->whereNotNull('fecha_vencimiento')
+            ->orderBy('fecha_vencimiento')
+            ->get()
+            ->map(function ($producto) {
+                $diasRestantes = now()->diffInDays($producto->fecha_vencimiento, false);
+                return [
+                    'sku' => $producto->sku,
+                    'nombre_comercial' => $producto->nombre_comercial,
+                    'fecha_vencimiento' => $producto->fecha_vencimiento->format('Y-m-d'),
+                    'dias_restantes' => (int) $diasRestantes,
+                ];
+            });
+
+        $productosPorVencerCount = $productosPorVencer->count();
 
         // Ventas por día (últimos 7 días)
         $ventasPorDia = VentaFisica::query()
@@ -47,8 +63,10 @@ class DashboardController extends Controller
         return inertia('Pos/Dashboard/Index', [
             'totalProductos'  => $totalProductos,
             'ventasHoy'       => $ventasHoy,
-            'sedesActivas'    => $sedesActivas,
+            'ventasHoyMonto'  => $ventasHoyMonto,
             'stockBajo'       => $stockBajo,
+            'productosPorVencer' => $productosPorVencer,
+            'productosPorVencerCount' => $productosPorVencerCount,
             'ventasPorDia'    => $dias,
             'productosPorEstado' => [
                 'activos'   => $activos,

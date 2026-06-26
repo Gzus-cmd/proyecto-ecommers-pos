@@ -58,6 +58,7 @@ export interface ProductoLocal {
     forma_farmaceutica: string | null;
     requiere_receta: boolean;
     precio_venta: number;
+    fecha_vencimiento: string | null;
     activo: boolean;
 }
 

@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class VentaFisica extends Model
 {
+    /** @use HasFactory<\Database\Factories\VentaFisicaFactory> */
+    use HasFactory;
+
     protected $table = 'ventas_fisicas';
 
     protected $fillable = [

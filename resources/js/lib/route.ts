@@ -73,6 +73,8 @@ const ROUTES: Record<string, string> = {
     'settings.profile': '/settings/profile',
     'settings.profile.update': '/settings/profile',
     'settings.profile.password': '/settings/profile/password',
+    'settings.sede.edit': '/settings/sede',
+    'settings.sede.update': '/settings/sede',
 };
 
 export function route(name: string, params?: Params): string {

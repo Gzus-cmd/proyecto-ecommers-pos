@@ -17,7 +17,7 @@ const emit = defineEmits<{
 }>();
 
 function cancel() {
-    router.visit(props.backRoute || route('pos.dashboard'));
+    router.visit(route(props.backRoute || 'pos.dashboard'));
 }
 </script>
 

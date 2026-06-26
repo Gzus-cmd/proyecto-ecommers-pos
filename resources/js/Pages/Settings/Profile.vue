@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm, Head } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import { toast } from 'vue-sonner';
 import PosLayout from '@/Layouts/PosLayout.vue';
 import Card from '@/Components/pos/ui/Card.vue';

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
 import FormField from '@/Components/pos/FormField.vue';
@@ -76,10 +77,7 @@ function submit() {
                 </FormField>
 
                 <FormField label="Requiere Receta">
-                    <label class="flex items-center gap-2">
-                        <input v-model="form.requiere_receta" type="checkbox" class="rounded border-gray-700 bg-gray-900 text-blue-600" />
-                        <span class="text-sm text-gray-300">Sí, requiere receta</span>
-                    </label>
+                    <Toggle v-model="form.requiere_receta" label="Requiere Receta" />
                 </FormField>
             </div>
 

@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
+import { router } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 
-interface MetricCard {
-    label: string;
-    value: number;
-    icon: string;
-    color: string;
+interface ProductoVencer {
+    sku: string;
+    nombre_comercial: string;
+    fecha_vencimiento: string;
+    dias_restantes: number;
 }
 
 interface VentaDia {
@@ -19,13 +21,37 @@ interface VentaDia {
 const props = defineProps<{
     totalProductos: number;
     ventasHoy: number;
-    sedesActivas: number;
+    ventasHoyMonto: number;
     stockBajo: number;
+    productosPorVencer: ProductoVencer[];
+    productosPorVencerCount: number;
     ventasPorDia: VentaDia[];
     productosPorEstado: { activos: number; inactivos: number };
 }>();
 
-const cards: MetricCard[] = [
+const showVencerModal = ref(false);
+
+const productosVencidos = computed(() =>
+    props.productosPorVencer.filter((p) => p.dias_restantes <= 0),
+);
+const productosProximos = computed(() =>
+    props.productosPorVencer.filter((p) => p.dias_restantes > 0),
+);
+
+function diasColor(dias: number): string {
+    if (dias <= 0) return 'text-red-400';
+    if (dias <= 7) return 'text-orange-400';
+    if (dias <= 15) return 'text-yellow-400';
+    return 'text-emerald-400';
+}
+
+function diasLabel(dias: number): string {
+    if (dias <= 0) return 'Vencido';
+    if (dias === 1) return '1 día';
+    return `${dias} días`;
+}
+
+const cards = [
     {
         label: 'Total Productos',
         value: props.totalProductos,
@@ -35,14 +61,16 @@ const cards: MetricCard[] = [
     {
         label: 'Ventas Hoy',
         value: props.ventasHoy,
+        subtitle: `S/ ${props.ventasHoyMonto.toFixed(2)}`,
         icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
         color: 'emerald',
     },
     {
-        label: 'Sedes Activas',
-        value: props.sedesActivas,
-        icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-        color: 'violet',
+        label: 'Productos por Vencer',
+        value: props.productosPorVencerCount,
+        icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+        color: 'amber',
+        clickable: true,
     },
     {
         label: 'Stock Bajo',
@@ -56,7 +84,7 @@ const totalProductos = computed(() => props.productosPorEstado.activos + props.p
 const donutPercentage = computed(() =>
     totalProductos.value > 0 ? (props.productosPorEstado.activos / totalProductos.value) * 100 : 0,
 );
-const donutCircumference = 2 * Math.PI * 40; // r=40
+const donutCircumference = 2 * Math.PI * 40;
 const donutOffset = computed(() => donutCircumference - (donutPercentage.value / 100) * donutCircumference);
 
 const maxVentas = computed(() => Math.max(...props.ventasPorDia.map((d) => d.total), 1));
@@ -64,6 +92,12 @@ const maxVentas = computed(() => Math.max(...props.ventasPorDia.map((d) => d.tot
 function formatDate(fecha: string): string {
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es', { weekday: 'short' });
+}
+
+function cardClicked(card: typeof cards[0]) {
+    if (card.clickable) {
+        showVencerModal.value = true;
+    }
 }
 </script>
 
@@ -81,19 +115,24 @@ function formatDate(fecha: string): string {
             <div
                 v-for="card in cards"
                 :key="card.label"
-                class="group relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors hover:bg-gray-800/50"
+                :class="[
+                    'group relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors',
+                    card.clickable ? 'cursor-pointer hover:bg-gray-800/50' : '',
+                ]"
+                @click="cardClicked(card)"
             >
                 <div class="flex items-start justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-400">{{ card.label }}</p>
                         <p class="mt-2 text-3xl font-bold text-white">{{ card.value }}</p>
+                        <p v-if="'subtitle' in card && card.subtitle" class="mt-1 text-xs text-gray-500">{{ card.subtitle }}</p>
                     </div>
                     <div
                         :class="[
                             'flex h-12 w-12 items-center justify-center rounded-lg',
                             card.color === 'blue' && 'bg-blue-600/10 text-blue-400',
                             card.color === 'emerald' && 'bg-emerald-600/10 text-emerald-400',
-                            card.color === 'violet' && 'bg-violet-600/10 text-violet-400',
+                            card.color === 'amber' && 'bg-amber-600/10 text-amber-400',
                             card.color === 'red' && 'bg-red-600/10 text-red-400',
                         ]"
                     >
@@ -189,5 +228,104 @@ function formatDate(fecha: string): string {
                 </div>
             </div>
         </div>
+
+        <!-- Modal: Productos por Vencer -->
+        <Teleport to="body">
+            <div
+                v-if="showVencerModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                @click.self="showVencerModal = false"
+            >
+                <div class="w-full max-w-2xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Productos por Vencer</h3>
+                            <p class="text-sm text-gray-400">Productos próximos a vencer y vencidos</p>
+                        </div>
+                        <button
+                            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
+                            @click="showVencerModal = false"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto p-6">
+                        <!-- Vencidos -->
+                        <div v-if="productosVencidos.length > 0" class="mb-6">
+                            <h4 class="mb-3 text-sm font-semibold text-red-400">
+                                Vencidos ({{ productosVencidos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Vence</th>
+                                        <th class="pb-2 font-medium">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="p in productosVencidos"
+                                        :key="p.sku"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
+                                        <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.fecha_vencimiento }}</td>
+                                        <td class="py-2">
+                                            <span class="font-medium text-red-400">Vencido</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Próximos a vencer -->
+                        <div v-if="productosProximos.length > 0">
+                            <h4 class="mb-3 text-sm font-semibold text-amber-400">
+                                Próximos a Vencer ({{ productosProximos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Vence</th>
+                                        <th class="pb-2 font-medium">Días</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="p in productosProximos"
+                                        :key="p.sku"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
+                                        <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.fecha_vencimiento }}</td>
+                                        <td class="py-2">
+                                            <span :class="['font-medium', diasColor(p.dias_restantes)]">
+                                                {{ diasLabel(p.dias_restantes) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            v-if="productosPorVencer.length === 0"
+                            class="py-8 text-center text-sm text-gray-500"
+                        >
+                            No hay productos próximos a vencer.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </AppPageShell>
 </template>

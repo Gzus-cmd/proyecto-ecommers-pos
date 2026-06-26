@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class MetodoPago extends Model
 {
+    /** @use HasFactory<\Database\Factories\MetodoPagoFactory> */
+    use HasFactory;
+
     protected $table = 'metodos_pago';
 
     protected $fillable = [
