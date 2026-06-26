@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import DataTable from '@/Components/pos/DataTable.vue';
 import Badge from '@/Components/pos/ui/Badge.vue';
-import Button from '@/Components/pos/ui/Button.vue';
 import ConfirmDialog from '@/Components/pos/ConfirmDialog.vue';
 import { toast } from 'vue-sonner';
 import type { PaginatedData, LoteLocal } from '@/types';
@@ -54,6 +54,7 @@ const columns = [
     { key: 'sku_producto', label: 'SKU' },
     { key: 'fecha_vencimiento', label: 'Vencimiento' },
     { key: 'cantidad_disponible', label: 'Cantidad' },
+    { key: 'user', label: 'Registrado por' },
 ];
 </script>
 
@@ -97,17 +98,29 @@ const columns = [
                     </Badge>
                 </div>
             </template>
+            <template #cell-user="{ row }">
+                <span class="text-gray-400">{{ (row as unknown as LoteLocal).user?.name || '—' }}</span>
+            </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-2">
                     <Link
+                        :href="route('pos.lotes.show', (row as unknown as LoteLocal).id)"
+                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+                    >
+                        Ver
+                    </Link>
+                    <Link
                         :href="route('pos.lotes.edit', (row as unknown as LoteLocal).id)"
-                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                     >
                         Editar
                     </Link>
-                    <Button variant="ghost" size="sm" @click="confirmDelete((row as unknown as LoteLocal).id)">
+                    <button
+                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                        @click="confirmDelete((row as unknown as LoteLocal).id)"
+                    >
                         Eliminar
-                    </Button>
+                    </button>
                 </div>
             </template>
         </DataTable>

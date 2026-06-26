@@ -56,6 +56,13 @@ class ProductoLocalController extends Controller
             ->with('success', 'Producto actualizado correctamente.');
     }
 
+    public function show(ProductoLocal $producto)
+    {
+        return inertia('Pos/Productos/Show', [
+            'producto' => $producto,
+        ]);
+    }
+
     public function destroy(ProductoLocal $producto)
     {
         $hasLotes = $producto->lotes()->exists();

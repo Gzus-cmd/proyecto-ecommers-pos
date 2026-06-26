@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import Card from '@/Components/pos/ui/Card.vue';
-import Badge from '@/Components/pos/ui/Badge.vue';
 import type { VentaFisica } from '@/types';
 
 defineProps<{
@@ -34,6 +34,10 @@ defineProps<{
                     <div class="flex justify-between">
                         <span class="text-gray-400">Usuario</span>
                         <span class="text-white">{{ venta.user?.name || '-' }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">Cliente</span>
+                        <span class="text-white">{{ venta.cliente ? `${venta.cliente.nombres || ''} ${venta.cliente.apellidos || ''}`.trim() || venta.cliente.dni : '-' }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Método de Pago</span>

@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const form = useForm({
     nombre: props.metodoPago.nombre,
+    numero_cuenta: props.metodoPago.numero_cuenta || '',
+    titular: props.metodoPago.titular || '',
     activo: props.metodoPago.activo,
 });
 
@@ -35,6 +37,14 @@ function submit() {
         <FormPage title="Editar Método de Pago" :description="`Editando: ${metodoPago.nombre}`" :is-editing="true" back-route="pos.metodos-pago.index" @submit="submit">
             <FormField label="Nombre" required :error="form.errors.nombre">
                 <Input v-model="form.nombre" placeholder="Ej: Efectivo, Tarjeta, Yape..." />
+            </FormField>
+
+            <FormField label="Número de Cuenta" :error="form.errors.numero_cuenta">
+                <Input v-model="form.numero_cuenta" placeholder="Ej: 952123456 para Yape, 191-1234567890 para transferencia" />
+            </FormField>
+
+            <FormField label="Titular" :error="form.errors.titular">
+                <Input v-model="form.titular" placeholder="Nombre del titular (opcional)" />
             </FormField>
 
             <FormField label="Estado">

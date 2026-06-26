@@ -27,6 +27,7 @@ const ROUTES: Record<string, string> = {
     'pos.productos.index': '/pos/productos',
     'pos.productos.create': '/pos/productos/create',
     'pos.productos.store': '/pos/productos',
+    'pos.productos.show': '/pos/productos/{producto}',
     'pos.productos.edit': '/pos/productos/{producto}/edit',
     'pos.productos.update': '/pos/productos/{producto}',
     'pos.productos.destroy': '/pos/productos/{producto}',
@@ -35,6 +36,7 @@ const ROUTES: Record<string, string> = {
     'pos.lotes.index': '/pos/lotes',
     'pos.lotes.create': '/pos/lotes/create',
     'pos.lotes.store': '/pos/lotes',
+    'pos.lotes.show': '/pos/lotes/{lote}',
     'pos.lotes.edit': '/pos/lotes/{lote}/edit',
     'pos.lotes.update': '/pos/lotes/{lote}',
     'pos.lotes.destroy': '/pos/lotes/{lote}',
@@ -61,6 +63,8 @@ const ROUTES: Record<string, string> = {
 
     // ── Ventas ─────────────────────────────────────────────
     'pos.ventas.index': '/pos/ventas',
+    'pos.ventas.create': '/pos/ventas/crear',
+    'pos.ventas.store': '/pos/ventas',
     'pos.ventas.show': '/pos/ventas/{venta}',
 
     // ── Detalle Ventas ─────────────────────────────────────
@@ -68,6 +72,11 @@ const ROUTES: Record<string, string> = {
 
     // ── Usuarios ───────────────────────────────────────────
     'pos.users.index': '/pos/users',
+    'pos.users.create': '/pos/users/crear',
+    'pos.users.store': '/pos/users',
+    'pos.users.edit': '/pos/users/{user}/edit',
+    'pos.users.update': '/pos/users/{user}',
+    'pos.users.destroy': '/pos/users/{user}',
 
     // ── Settings ───────────────────────────────────────────
     'settings.profile': '/settings/profile',

@@ -19,18 +19,5 @@ class Cliente extends Model
         'apellidos',
         'telefono',
         'email',
-        'activo',
     ];
-
-    protected function casts(): array
-    {
-        return [
-            'activo' => 'boolean',
-        ];
-    }
-
-    public function scopeActivos(Builder $query): void
-    {
-        $query->where('activo', true);
-    }
 }

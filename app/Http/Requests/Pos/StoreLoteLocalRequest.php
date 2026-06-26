@@ -18,6 +18,7 @@ class StoreLoteLocalRequest extends FormRequest
             'numero_lote' => ['required', 'string', 'max:100'],
             'fecha_vencimiento' => ['required', 'date', 'after:today'],
             'cantidad_disponible' => ['required', 'integer', 'min:0'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 

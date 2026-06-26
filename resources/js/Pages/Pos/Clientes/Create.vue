@@ -5,7 +5,6 @@ import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
 import FormField from '@/Components/pos/FormField.vue';
 import Input from '@/Components/pos/ui/Input.vue';
-import Toggle from '@/Components/pos/ui/Toggle.vue';
 import { toast } from 'vue-sonner';
 
 const form = useForm({
@@ -14,7 +13,6 @@ const form = useForm({
     apellidos: '',
     telefono: '',
     email: '',
-    activo: true,
 });
 
 function submit() {
@@ -37,14 +35,14 @@ function submit() {
                     <Input v-model="form.dni" placeholder="N° de documento" />
                 </FormField>
 
-                <FormField label="Nombres" required :error="form.errors.nombres">
-                    <Input v-model="form.nombres" placeholder="Nombres" />
+                <FormField label="Nombres" :error="form.errors.nombres">
+                    <Input v-model="form.nombres" placeholder="Nombres (opcional)" />
                 </FormField>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <FormField label="Apellidos" required :error="form.errors.apellidos">
-                    <Input v-model="form.apellidos" placeholder="Apellidos" />
+                <FormField label="Apellidos" :error="form.errors.apellidos">
+                    <Input v-model="form.apellidos" placeholder="Apellidos (opcional)" />
                 </FormField>
 
                 <FormField label="Teléfono" :error="form.errors.telefono">
@@ -54,10 +52,6 @@ function submit() {
 
             <FormField label="Correo electrónico" :error="form.errors.email">
                 <Input v-model="form.email" type="email" placeholder="correo@ejemplo.com" />
-            </FormField>
-
-            <FormField label="Estado">
-                <Toggle v-model="form.activo" label="Activo" />
             </FormField>
         </FormPage>
     </AppPageShell>

@@ -21,6 +21,8 @@ class UpdateMetodoPagoRequest extends FormRequest
                 'max:100',
                 Rule::unique('metodos_pago', 'nombre')->ignore($this->route('metodo_pago')),
             ],
+            'numero_cuenta' => ['nullable', 'string', 'max:100'],
+            'titular' => ['nullable', 'string', 'max:255'],
             'activo' => ['boolean'],
         ];
     }

@@ -10,6 +10,8 @@ import { toast } from 'vue-sonner';
 
 const form = useForm({
     nombre: '',
+    numero_cuenta: '',
+    titular: '',
     activo: true,
 });
 
@@ -30,6 +32,14 @@ function submit() {
         <FormPage title="Nuevo Método de Pago" description="Crear un nuevo método de pago" back-route="pos.metodos-pago.index" @submit="submit">
             <FormField label="Nombre" required :error="form.errors.nombre">
                 <Input v-model="form.nombre" placeholder="Ej: Efectivo, Tarjeta, Yape..." />
+            </FormField>
+
+            <FormField label="Número de Cuenta" :error="form.errors.numero_cuenta">
+                <Input v-model="form.numero_cuenta" placeholder="Ej: 952123456 para Yape, 191-1234567890 para transferencia" />
+            </FormField>
+
+            <FormField label="Titular" :error="form.errors.titular">
+                <Input v-model="form.titular" placeholder="Nombre del titular (opcional)" />
             </FormField>
 
             <FormField label="Estado">

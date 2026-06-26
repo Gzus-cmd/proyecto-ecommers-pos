@@ -5,7 +5,6 @@ import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
 import FormField from '@/Components/pos/FormField.vue';
 import Input from '@/Components/pos/ui/Input.vue';
-import Toggle from '@/Components/pos/ui/Toggle.vue';
 import { toast } from 'vue-sonner';
 import type { Cliente } from '@/types';
 
@@ -15,11 +14,10 @@ const props = defineProps<{
 
 const form = useForm({
     dni: props.cliente.dni,
-    nombres: props.cliente.nombres,
-    apellidos: props.cliente.apellidos,
+    nombres: props.cliente.nombres || '',
+    apellidos: props.cliente.apellidos || '',
     telefono: props.cliente.telefono || '',
     email: props.cliente.email || '',
-    activo: props.cliente.activo,
 });
 
 function submit() {
@@ -36,20 +34,20 @@ function submit() {
 
 <template>
     <AppPageShell>
-        <FormPage title="Editar Cliente" :description="`Editando: ${cliente.nombres} ${cliente.apellidos}`" :is-editing="true" back-route="pos.clientes.index" @submit="submit">
+        <FormPage title="Editar Cliente" :description="`Editando: ${cliente.nombres || cliente.dni}`" :is-editing="true" back-route="pos.clientes.index" @submit="submit">
             <div class="grid grid-cols-2 gap-4">
                 <FormField label="DNI" required :error="form.errors.dni">
                     <Input v-model="form.dni" placeholder="N° de documento" />
                 </FormField>
 
-                <FormField label="Nombres" required :error="form.errors.nombres">
-                    <Input v-model="form.nombres" placeholder="Nombres" />
+                <FormField label="Nombres" :error="form.errors.nombres">
+                    <Input v-model="form.nombres" placeholder="Nombres (opcional)" />
                 </FormField>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <FormField label="Apellidos" required :error="form.errors.apellidos">
-                    <Input v-model="form.apellidos" placeholder="Apellidos" />
+                <FormField label="Apellidos" :error="form.errors.apellidos">
+                    <Input v-model="form.apellidos" placeholder="Apellidos (opcional)" />
                 </FormField>
 
                 <FormField label="Teléfono" :error="form.errors.telefono">
@@ -59,10 +57,6 @@ function submit() {
 
             <FormField label="Correo electrónico" :error="form.errors.email">
                 <Input v-model="form.email" type="email" placeholder="correo@ejemplo.com" />
-            </FormField>
-
-            <FormField label="Estado">
-                <Toggle v-model="form.activo" label="Activo" />
             </FormField>
         </FormPage>
     </AppPageShell>

@@ -15,6 +15,8 @@ class StoreMetodoPagoRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:100', 'unique:metodos_pago,nombre'],
+            'numero_cuenta' => ['nullable', 'string', 'max:100'],
+            'titular' => ['nullable', 'string', 'max:255'],
             'activo' => ['boolean'],
         ];
     }

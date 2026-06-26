@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import DataTable from '@/Components/pos/DataTable.vue';
-import BadgeActivo from '@/Components/pos/BadgeActivo.vue';
-import Button from '@/Components/pos/ui/Button.vue';
 import ConfirmDialog from '@/Components/pos/ConfirmDialog.vue';
 import { toast } from 'vue-sonner';
 import type { PaginatedData, Cliente } from '@/types';
@@ -50,7 +49,6 @@ const columns = [
     { key: 'apellidos', label: 'Apellidos' },
     { key: 'telefono', label: 'Teléfono' },
     { key: 'email', label: 'Email' },
-    { key: 'activo', label: 'Estado' },
 ];
 </script>
 
@@ -89,20 +87,20 @@ const columns = [
             <template #cell-email="{ row }">
                 <span class="text-gray-400">{{ (row as unknown as Cliente).email || '—' }}</span>
             </template>
-            <template #cell-activo="{ row }">
-                <BadgeActivo :activo="(row as unknown as Cliente).activo" />
-            </template>
             <template #actions="{ row }">
                 <div class="flex items-center gap-2">
                     <Link
                         :href="route('pos.clientes.edit', (row as unknown as Cliente).id)"
-                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                     >
                         Editar
                     </Link>
-                    <Button variant="ghost" size="sm" @click="confirmDelete((row as unknown as Cliente).id)">
+                    <button
+                        class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                        @click="confirmDelete((row as unknown as Cliente).id)"
+                    >
                         Eliminar
-                    </Button>
+                    </button>
                 </div>
             </template>
         </DataTable>

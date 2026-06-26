@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import DataTable from '@/Components/pos/DataTable.vue';
@@ -21,7 +22,19 @@ const columns = [
 
 <template>
     <AppPageShell>
-        <AppPageHeader title="Ventas" description="Historial de ventas realizadas" />
+        <AppPageHeader title="Ventas" description="Historial de ventas realizadas">
+            <template #actions>
+                <Link
+                    :href="route('pos.ventas.create')"
+                    class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nueva Venta
+                </Link>
+            </template>
+        </AppPageHeader>
 
         <DataTable
             :columns="columns"
@@ -51,7 +64,7 @@ const columns = [
             <template #actions="{ row }">
                 <Link
                     :href="route('pos.ventas.show', (row as unknown as VentaFisica).id)"
-                    class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                    class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
                 >
                     Ver detalle
                 </Link>

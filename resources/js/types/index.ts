@@ -29,6 +29,8 @@ export interface Sede {
 export interface MetodoPago {
     id: number;
     nombre: string;
+    numero_cuenta: string | null;
+    titular: string | null;
     activo: boolean;
 }
 
@@ -36,6 +38,7 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    activo: boolean;
     created_at?: string;
 }
 
@@ -46,7 +49,6 @@ export interface Cliente {
     apellidos: string;
     telefono: string | null;
     email: string | null;
-    activo: boolean;
 }
 
 export interface ProductoLocal {
@@ -68,7 +70,9 @@ export interface LoteLocal {
     numero_lote: string;
     fecha_vencimiento: string;
     cantidad_disponible: number;
+    user_id?: number;
     producto?: ProductoLocal;
+    user?: User;
 }
 
 export interface StockLocal {
@@ -85,6 +89,7 @@ export interface VentaFisica {
     id: number;
     sede_id: number;
     user_id: number;
+    cliente_id?: number;
     fecha_venta: string;
     subtotal: number;
     impuesto: number;
@@ -93,6 +98,7 @@ export interface VentaFisica {
     sede?: Sede;
     user?: User;
     metodo_pago?: MetodoPago;
+    cliente?: Cliente;
     detalles?: DetalleVenta[];
 }
 

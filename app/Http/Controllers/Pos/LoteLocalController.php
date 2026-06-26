@@ -14,7 +14,7 @@ class LoteLocalController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $lotes = LoteLocal::with('producto')
+        $lotes = LoteLocal::with(['producto', 'user'])
             ->when($search, function ($query, $search) {
                 $query->where('numero_lote', 'like', "%{$search}%")
                     ->orWhere('sku_producto', 'like', "%{$search}%");
@@ -39,7 +39,9 @@ class LoteLocalController extends Controller
 
     public function store(StoreLoteLocalRequest $request)
     {
-        LoteLocal::create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = auth()->id();
+        LoteLocal::create($data);
 
         return redirect()->route('pos.lotes.index')
             ->with('success', 'Lote creado correctamente.');
@@ -61,6 +63,15 @@ class LoteLocalController extends Controller
 
         return redirect()->route('pos.lotes.index')
             ->with('success', 'Lote actualizado correctamente.');
+    }
+
+    public function show(LoteLocal $lote)
+    {
+        $lote->load(['producto', 'user']);
+
+        return inertia('Pos/Lotes/Show', [
+            'lote' => $lote,
+        ]);
     }
 
     public function destroy(LoteLocal $lote)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
 use App\Models\StockLocal;
 use App\Models\VentaFisica;
@@ -35,6 +36,23 @@ class DashboardController extends Controller
 
         $productosPorVencerCount = $productosPorVencer->count();
 
+        // Stock bajo (<= 10 unidades)
+        $stockBajoProductos = StockLocal::with(['loteLocal.producto', 'sede'])
+            ->where('cantidad_disponible', '<', 10)
+            ->where('cantidad_disponible', '>', 0)
+            ->orderBy('cantidad_disponible')
+            ->limit(50)
+            ->get()
+            ->map(function ($stock) {
+                return [
+                    'producto' => $stock->loteLocal?->producto?->nombre_comercial ?? '-',
+                    'sku' => $stock->loteLocal?->sku_producto ?? '-',
+                    'cantidad' => $stock->cantidad_disponible,
+                    'lote' => $stock->loteLocal?->numero_lote ?? '-',
+                    'sede' => $stock->sede?->nombre ?? '-',
+                ];
+            });
+
         // Ventas por día (últimos 7 días)
         $ventasPorDia = VentaFisica::query()
             ->where('created_at', '>=', now()->subDays(6)->startOfDay())
@@ -65,6 +83,7 @@ class DashboardController extends Controller
             'ventasHoy'       => $ventasHoy,
             'ventasHoyMonto'  => $ventasHoyMonto,
             'stockBajo'       => $stockBajo,
+            'stockBajoProductos' => $stockBajoProductos,
             'productosPorVencer' => $productosPorVencer,
             'productosPorVencerCount' => $productosPorVencerCount,
             'ventasPorDia'    => $dias,

@@ -18,11 +18,20 @@ interface VentaDia {
     monto: number;
 }
 
+interface StockBajoItem {
+    producto: string;
+    sku: string;
+    cantidad: number;
+    lote: string;
+    sede: string;
+}
+
 const props = defineProps<{
     totalProductos: number;
     ventasHoy: number;
     ventasHoyMonto: number;
     stockBajo: number;
+    stockBajoProductos: StockBajoItem[];
     productosPorVencer: ProductoVencer[];
     productosPorVencerCount: number;
     ventasPorDia: VentaDia[];
@@ -30,6 +39,7 @@ const props = defineProps<{
 }>();
 
 const showVencerModal = ref(false);
+const showStockBajoModal = ref(false);
 
 const productosVencidos = computed(() =>
     props.productosPorVencer.filter((p) => p.dias_restantes <= 0),
@@ -77,6 +87,7 @@ const cards = [
         value: props.stockBajo,
         icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z',
         color: 'red',
+        clickable: true,
     },
 ];
 
@@ -95,8 +106,11 @@ function formatDate(fecha: string): string {
 }
 
 function cardClicked(card: typeof cards[0]) {
-    if (card.clickable) {
+    if (card.label === 'Productos por Vencer') {
         showVencerModal.value = true;
+    }
+    if (card.label === 'Stock Bajo') {
+        showStockBajoModal.value = true;
     }
 }
 </script>
@@ -228,6 +242,65 @@ function cardClicked(card: typeof cards[0]) {
                 </div>
             </div>
         </div>
+
+        <!-- Modal: Stock Bajo -->
+        <Teleport to="body">
+            <div
+                v-if="showStockBajoModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                @click.self="showStockBajoModal = false"
+            >
+                <div class="w-full max-w-2xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Stock Bajo</h3>
+                            <p class="text-sm text-gray-400">Productos con menos de 10 unidades disponibles</p>
+                        </div>
+                        <button
+                            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
+                            @click="showStockBajoModal = false"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto p-6">
+                        <table v-if="stockBajoProductos.length > 0" class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                    <th class="pb-2 pr-4 font-medium">Producto</th>
+                                    <th class="pb-2 pr-4 font-medium">SKU</th>
+                                    <th class="pb-2 pr-4 font-medium">Cantidad</th>
+                                    <th class="pb-2 pr-4 font-medium">Lote</th>
+                                    <th class="pb-2 font-medium">Sede</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="(item, i) in stockBajoProductos"
+                                    :key="i"
+                                    class="border-b border-gray-800/50"
+                                >
+                                    <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
+                                    <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
+                                    <td class="py-2 pr-4">
+                                        <span class="font-medium text-red-400">{{ item.cantidad }}</span>
+                                    </td>
+                                    <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
+                                    <td class="py-2 text-gray-400">{{ item.sede }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div v-else class="py-8 text-center text-sm text-gray-500">
+                            No hay productos con stock bajo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
 
         <!-- Modal: Productos por Vencer -->
         <Teleport to="body">
