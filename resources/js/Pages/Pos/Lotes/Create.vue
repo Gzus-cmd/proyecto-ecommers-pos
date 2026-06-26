@@ -111,7 +111,6 @@ function productoLabel(sku: string): string {
             </div>
         </div>
 
-        <div class="mb-4">
         <div v-if="lotes.length === 0" class="rounded-xl border border-dashed border-gray-800 py-16 text-center">
             <p class="text-gray-500">Agrega al menos un producto para crear lotes.</p>
         </div>

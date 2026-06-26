@@ -10,6 +10,7 @@ interface ProductoVencer {
     nombre_comercial: string;
     fecha_vencimiento: string;
     dias_restantes: number;
+    lote?: string;
 }
 
 interface VentaDia {
@@ -212,7 +213,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
         </div>
 
         <!-- Charts row -->
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <!-- Bar chart: Ventas por día -->
             <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h3 class="mb-1 text-base font-semibold text-white">Ventas por Día</h3>
@@ -220,21 +221,24 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                     {{ fechaInicio ? formatFechaDDMM(fechaInicio) : '' }} — {{ fechaFin ? formatFechaDDMM(fechaFin) : '' }}
                 </p>
 
-                <div class="flex items-end justify-between gap-3" style="height: 160px">
-                    <div
-                        v-for="dia in ventasData"
-                        :key="dia.fecha"
-                        class="flex flex-1 flex-col items-center justify-end gap-2"
-                    >
-                        <span class="text-xs font-medium text-gray-300">{{ dia.total }}</span>
+                <div class="overflow-x-auto">
+                    <div class="flex items-end gap-3" style="height: 160px; min-width: 480px">
                         <div
-                            class="w-full rounded-t-md transition-all duration-500"
-                            :style="{
-                                height: Math.max((dia.total / maxVentas) * 120, 4) + 'px',
-                                background: 'linear-gradient(to top, #3b82f6, #60a5fa)',
-                            }"
-                        />
-                        <span class="text-xs text-gray-500">{{ formatDate(dia.fecha) }}</span>
+                            v-for="dia in ventasData"
+                            :key="dia.fecha"
+                            class="flex flex-col items-center justify-end gap-2"
+                            style="min-width: 32px; max-width: 48px; flex: 1"
+                        >
+                            <span class="text-xs font-medium text-gray-300">{{ dia.total }}</span>
+                            <div
+                                class="w-full rounded-t-md transition-all duration-500"
+                                :style="{
+                                    height: Math.max((dia.total / maxVentas) * 120, 4) + 'px',
+                                    background: 'linear-gradient(to top, #3b82f6, #60a5fa)',
+                                }"
+                            />
+                            <span class="text-xs text-gray-500">{{ formatDate(dia.fecha) }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -306,29 +310,32 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                     <p class="text-sm text-gray-400">Productos con más ventas en el rango seleccionado</p>
                 </div>
 
-                <div class="flex items-end gap-3">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs text-gray-500">Desde</label>
-                        <input
-                            v-model="fechaInicioModel"
-                            type="date"
-                            class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
-                        />
+                <div class="flex flex-col gap-2">
+                    <span class="text-xs font-medium text-gray-400">Filtrar por rango</span>
+                    <div class="flex items-end gap-3">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-500">Desde</label>
+                            <input
+                                v-model="fechaInicioModel"
+                                type="date"
+                                class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-500">Hasta</label>
+                            <input
+                                v-model="fechaFinModel"
+                                type="date"
+                                class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                        <button
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                            @click="reloadWithDates"
+                        >
+                            Filtrar
+                        </button>
                     </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs text-gray-500">Hasta</label>
-                        <input
-                            v-model="fechaFinModel"
-                            type="date"
-                            class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
-                        />
-                    </div>
-                    <button
-                        class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                        @click="reloadWithDates"
-                    >
-                        Filtrar
-                    </button>
                 </div>
             </div>
 
@@ -503,6 +510,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                     <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
                                         <th class="pb-2 pr-4 font-medium">SKU</th>
                                         <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
                                         <th class="pb-2 pr-4 font-medium">Vence</th>
                                         <th class="pb-2 font-medium">Estado</th>
                                     </tr>
@@ -510,11 +518,12 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                 <tbody>
                                     <tr
                                         v-for="p in productosVencidos"
-                                        :key="p.sku"
+                                        :key="p.sku + (p.lote ?? '')"
                                         class="border-b border-gray-800/50"
                                     >
                                         <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
                                         <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400 font-mono text-xs">{{ p.lote ?? '-' }}</td>
                                         <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
                                         <td class="py-2">
                                             <span class="font-medium text-red-400">Vencido</span>
@@ -534,6 +543,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                     <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
                                         <th class="pb-2 pr-4 font-medium">SKU</th>
                                         <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
                                         <th class="pb-2 pr-4 font-medium">Vence</th>
                                         <th class="pb-2 font-medium">Días</th>
                                     </tr>
@@ -541,11 +551,12 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                 <tbody>
                                     <tr
                                         v-for="p in productosProximos"
-                                        :key="p.sku"
+                                        :key="p.sku + (p.lote ?? '')"
                                         class="border-b border-gray-800/50"
                                     >
                                         <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
                                         <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400 font-mono text-xs">{{ p.lote ?? '-' }}</td>
                                         <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
                                         <td class="py-2">
                                             <span :class="['font-medium', diasColor(p.dias_restantes)]">

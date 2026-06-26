@@ -53,19 +53,21 @@ class DashboardController extends Controller
             }
         }
 
-        // ── Productos por vencer (<= 90 días) ─────────────────────────
+        // ── Productos por vencer (<= 90 días) desde lotes_local ────────
         $fechaLimite = now()->addDays(90);
-        $productosPorVencer = ProductoLocal::where('fecha_vencimiento', '<=', $fechaLimite)
-            ->whereNotNull('fecha_vencimiento')
+        $productosPorVencer = LoteLocal::with('producto')
+            ->where('fecha_vencimiento', '<=', $fechaLimite)
+            ->where('cantidad_disponible', '>', 0)
             ->orderBy('fecha_vencimiento')
             ->get()
-            ->map(function ($producto) {
-                $diasRestantes = now()->diffInDays($producto->fecha_vencimiento, false);
+            ->map(function ($lote) {
+                $diasRestantes = now()->diffInDays($lote->fecha_vencimiento, false);
                 return [
-                    'sku' => $producto->sku,
-                    'nombre_comercial' => $producto->nombre_comercial,
-                    'fecha_vencimiento' => $producto->fecha_vencimiento->format('Y-m-d'),
+                    'sku' => $lote->sku_producto,
+                    'nombre_comercial' => $lote->producto?->nombre_comercial ?? '-',
+                    'fecha_vencimiento' => $lote->fecha_vencimiento->format('Y-m-d'),
                     'dias_restantes' => (int) $diasRestantes,
+                    'lote' => $lote->numero_lote,
                 ];
             });
 
