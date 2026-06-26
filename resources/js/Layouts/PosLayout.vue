@@ -209,6 +209,20 @@ function handleLogout() {
                     <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Configuración</p>
                 </div>
                 <Link
+                    :href="route('settings.sede.edit')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('settings.sede.edit')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Sede
+                </Link>
+                <Link
                     :href="route('pos.metodos-pago.index')"
                     :class="[
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -264,16 +278,7 @@ function handleLogout() {
                         </svg>
                         Perfil
                     </Link>
-                    <Link
-                        :href="route('settings.sede.edit')"
-                        class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
-                        @click="userMenuOpen = false"
-                    >
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        Configuración de Sede
-                    </Link>
+
                     <button
                         class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-900/20"
                         @click="handleLogout"

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import Button from '@/Components/pos/ui/Button.vue';
 import { route } from '@/lib/route';
+
+const sedeNombre = usePage<{ sede?: { nombre?: string } }>().props.sede?.nombre;
 
 const form = useForm({
     email: '',
@@ -31,7 +33,8 @@ function submit() {
                     </svg>
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight text-white">Pharma Victoria POS</h1>
-                <p class="mt-1 text-sm text-gray-400">Ingrese sus credenciales para acceder</p>
+                <p v-if="sedeNombre" class="mt-1 text-sm font-medium text-blue-400">{{ sedeNombre }}</p>
+                <p v-else class="mt-1 text-sm text-gray-400">Ingrese sus credenciales para acceder</p>
             </div>
 
             <!-- Form -->

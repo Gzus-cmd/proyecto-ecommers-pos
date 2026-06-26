@@ -22,15 +22,7 @@ class ClienteFactory extends Factory
             'apellidos' => fake()->lastName(),
             'telefono' => fake()->numerify('9########'),
             'email' => fake()->unique()->safeEmail(),
-            'activo' => true,
         ];
-    }
-
-    public function inactivo(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'activo' => false,
-        ]);
     }
 
     public function sinTelefono(): static
