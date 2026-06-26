@@ -14,7 +14,8 @@ defineProps<{
 function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'warning' | 'success' } {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    const venc = new Date(fecha + 'T00:00:00');
+    const venc = new Date(fecha);
+    if (isNaN(venc.getTime())) return { label: 'Vencido', variant: 'danger' };
     const diff = Math.floor((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
     if (diff <= 0) return { label: 'Vencido', variant: 'danger' };
     if (diff <= 90) return { label: 'Por Vencer', variant: 'warning' };
@@ -23,7 +24,8 @@ function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'war
 
 function formatDate(date: string): string {
     if (!date) return '-';
-    return new Date(date + 'T00:00:00').toLocaleDateString('es-PE');
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('es-PE');
 }
 </script>
 

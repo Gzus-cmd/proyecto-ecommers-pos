@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import ToastNotification from '@/Components/pos/ToastNotification.vue';
@@ -13,6 +13,7 @@ const page = usePage<{
             id: number;
             name: string;
             email: string;
+            roles: string[];
         } | null;
     };
     sede?: {
@@ -23,6 +24,7 @@ const page = usePage<{
 
 const user = page.props.auth?.user;
 const sedeNombre = page.props.sede?.nombre;
+const isAdmin = computed(() => user?.roles?.includes('admin') ?? false);
 
 function isActive(routeName: string): boolean {
     const url = usePage().url;
@@ -99,6 +101,7 @@ function handleLogout() {
                     <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Gestión</p>
                 </div>
                 <Link
+                    v-if="isAdmin"
                     :href="route('pos.users.index')"
                     :class="[
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
@@ -205,37 +208,39 @@ function handleLogout() {
                     Stock
                 </Link>
 
-                <div class="pt-4 pb-1">
-                    <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Configuración</p>
-                </div>
-                <Link
-                    :href="route('settings.sede.edit')"
-                    :class="[
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive('settings.sede.edit')
-                            ? 'bg-blue-600/20 text-blue-400'
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                    ]"
-                >
-                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                    Sede
-                </Link>
-                <Link
-                    :href="route('pos.metodos-pago.index')"
-                    :class="[
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive('pos.metodos-pago.index')
-                            ? 'bg-blue-600/20 text-blue-400'
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                    ]"
-                >
-                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    Métodos de Pago
-                </Link>
+                <template v-if="isAdmin">
+                    <div class="pt-4 pb-1">
+                        <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Configuración</p>
+                    </div>
+                    <Link
+                        :href="route('settings.sede.edit')"
+                        :class="[
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                            isActive('settings.sede.edit')
+                                ? 'bg-blue-600/20 text-blue-400'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                        ]"
+                    >
+                        <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Sede
+                    </Link>
+                    <Link
+                        :href="route('pos.metodos-pago.index')"
+                        :class="[
+                            'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                            isActive('pos.metodos-pago.index')
+                                ? 'bg-blue-600/20 text-blue-400'
+                                : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                        ]"
+                    >
+                        <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Métodos de Pago
+                    </Link>
+                </template>
             </nav>
 
             <!-- User footer -->

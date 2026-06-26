@@ -15,6 +15,10 @@ class StoreVentaFisicaRequest extends FormRequest
     {
         return [
             'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
+            'nuevo_cliente' => ['nullable', 'array'],
+            'nuevo_cliente.dni' => ['required_with:nuevo_cliente', 'string', 'size:8', 'unique:clientes,dni'],
+            'nuevo_cliente.nombres' => ['required_with:nuevo_cliente', 'string', 'max:255'],
+            'nuevo_cliente.apellidos' => ['required_with:nuevo_cliente', 'string', 'max:255'],
             'metodo_pago_id' => ['required', 'integer', 'exists:metodos_pago,id'],
             'subtotal' => ['required', 'numeric', 'min:0'],
             'impuesto' => ['required', 'numeric', 'min:0'],
@@ -37,6 +41,11 @@ class StoreVentaFisicaRequest extends FormRequest
             'detalles.*.producto_sku.required' => 'El producto es obligatorio.',
             'detalles.*.cantidad.required' => 'La cantidad es obligatoria.',
             'detalles.*.cantidad.min' => 'La cantidad debe ser al menos 1.',
+            'nuevo_cliente.dni.required_with' => 'El DNI del nuevo cliente es obligatorio.',
+            'nuevo_cliente.dni.size' => 'El DNI debe tener exactamente 8 dígitos.',
+            'nuevo_cliente.dni.unique' => 'Este DNI ya está registrado. Selecciona el cliente existente.',
+            'nuevo_cliente.nombres.required_with' => 'Los nombres del nuevo cliente son obligatorios.',
+            'nuevo_cliente.apellidos.required_with' => 'Los apellidos del nuevo cliente son obligatorios.',
         ];
     }
 }

@@ -53,9 +53,11 @@ const ROUTES: Record<string, string> = {
     'pos.clientes.index': '/pos/clientes',
     'pos.clientes.create': '/pos/clientes/create',
     'pos.clientes.store': '/pos/clientes',
+    'pos.clientes.show': '/pos/clientes/{cliente}',
     'pos.clientes.edit': '/pos/clientes/{cliente}/edit',
     'pos.clientes.update': '/pos/clientes/{cliente}',
     'pos.clientes.destroy': '/pos/clientes/{cliente}',
+    'pos.clientes.search-by-dni': '/pos/clientes/search-by-dni',
 
     // ── Stock ──────────────────────────────────────────────
     'pos.stock.index': '/pos/stock',
@@ -64,7 +66,7 @@ const ROUTES: Record<string, string> = {
 
     // ── Ventas ─────────────────────────────────────────────
     'pos.ventas.index': '/pos/ventas',
-    'pos.ventas.create': '/pos/ventas/crear',
+    'pos.ventas.create': '/pos/ventas/create',
     'pos.ventas.store': '/pos/ventas',
     'pos.ventas.show': '/pos/ventas/{venta}',
 
@@ -73,7 +75,7 @@ const ROUTES: Record<string, string> = {
 
     // ── Usuarios ───────────────────────────────────────────
     'pos.users.index': '/pos/users',
-    'pos.users.create': '/pos/users/crear',
+    'pos.users.create': '/pos/users/create',
     'pos.users.store': '/pos/users',
     'pos.users.edit': '/pos/users/{user}/edit',
     'pos.users.update': '/pos/users/{user}',

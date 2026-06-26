@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -9,6 +9,8 @@ import BadgeActivo from '@/Components/pos/BadgeActivo.vue';
 import ConfirmDialog from '@/Components/pos/ConfirmDialog.vue';
 import { toast } from 'vue-sonner';
 import type { PaginatedData, MetodoPago } from '@/types';
+
+const isAdmin = computed(() => usePage().props.auth?.user?.roles?.includes('admin') ?? false);
 
 const props = defineProps<{
     metodos: PaginatedData<MetodoPago>;

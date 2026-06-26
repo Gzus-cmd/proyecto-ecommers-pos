@@ -10,6 +10,19 @@ use Illuminate\Http\Request;
 
 class ClienteController extends Controller
 {
+    public function searchByDni(Request $request)
+    {
+        $dni = $request->get('dni');
+
+        if (!$dni || strlen($dni) !== 8) {
+            return response()->json(['cliente' => null]);
+        }
+
+        $cliente = Cliente::where('dni', $dni)->first();
+
+        return response()->json(['cliente' => $cliente]);
+    }
+
     public function index(Request $request)
     {
         $search = $request->get('search');

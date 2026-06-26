@@ -58,10 +58,22 @@ class VentaFisicaController extends Controller
         $sedeId = auth()->user()->sede_id ?? 1;
 
         DB::transaction(function () use ($request, $sedeId) {
+            // Crear cliente inline si se enviaron datos de nuevo_cliente
+            $clienteId = $request->cliente_id;
+            if (!$clienteId && $request->filled('nuevo_cliente.dni')) {
+                $nuevoCliente = $request->input('nuevo_cliente');
+                $cliente = Cliente::create([
+                    'dni' => $nuevoCliente['dni'],
+                    'nombres' => $nuevoCliente['nombres'] ?? '',
+                    'apellidos' => $nuevoCliente['apellidos'] ?? '',
+                ]);
+                $clienteId = $cliente->id;
+            }
+
             $venta = VentaFisica::create([
                 'sede_id' => $sedeId,
                 'user_id' => auth()->id(),
-                'cliente_id' => $request->cliente_id,
+                'cliente_id' => $clienteId,
                 'fecha_venta' => now(),
                 'subtotal' => $request->subtotal,
                 'impuesto' => $request->impuesto,

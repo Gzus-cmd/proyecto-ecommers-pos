@@ -5,7 +5,6 @@ import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import Card from '@/Components/pos/ui/Card.vue';
-import Input from '@/Components/pos/ui/Input.vue';
 import Select from '@/Components/pos/ui/Select.vue';
 import Button from '@/Components/pos/ui/Button.vue';
 import { toast } from 'vue-sonner';
@@ -33,7 +32,75 @@ const form = useForm({
     subtotal: 0,
     impuesto: 0,
     total: 0,
+    nuevo_cliente: null as {
+        dni: string;
+        nombres: string;
+        apellidos: string;
+    } | null,
 });
+
+// Client inline search
+const dniSearch = ref('');
+const searchingDni = ref(false);
+const clienteEncontrado = ref<Cliente | null>(null);
+const showNuevoClienteForm = ref(false);
+
+async function buscarCliente() {
+    const dni = dniSearch.value.trim();
+    if (dni.length !== 8) return;
+
+    searchingDni.value = true;
+    clienteEncontrado.value = null;
+    showNuevoClienteForm.value = false;
+    form.cliente_id = '';
+    form.nuevo_cliente = null;
+
+    try {
+        const res = await fetch(route('pos.clientes.search-by-dni') + '?dni=' + encodeURIComponent(dni));
+        const data = await res.json();
+        if (data.cliente) {
+            clienteEncontrado.value = data.cliente;
+            form.cliente_id = String(data.cliente.id);
+        } else {
+            clienteEncontrado.value = null;
+            showNuevoClienteForm.value = true;
+        }
+    } catch {
+        toast.error('Error al buscar cliente');
+    } finally {
+        searchingDni.value = false;
+    }
+}
+
+function registrarNuevoCliente() {
+    const dni = dniSearch.value.trim();
+    if (dni.length !== 8) {
+        toast.error('El DNI debe tener 8 dígitos');
+        return;
+    }
+
+    form.nuevo_cliente = {
+        dni,
+        nombres: '',
+        apellidos: '',
+    };
+    form.cliente_id = '';
+    showNuevoClienteForm.value = false;
+    dniSearch.value = dni;
+}
+
+function cancelarNuevoCliente() {
+    form.nuevo_cliente = null;
+    showNuevoClienteForm.value = false;
+}
+
+function limpiarCliente() {
+    dniSearch.value = '';
+    clienteEncontrado.value = null;
+    showNuevoClienteForm.value = false;
+    form.cliente_id = '';
+    form.nuevo_cliente = null;
+}
 
 // Product modal
 const showProductModal = ref(false);
@@ -237,10 +304,126 @@ function submit() {
                 <!-- Right: cliente, metodo pago, totals -->
                 <div class="space-y-6">
                     <Card title="Cliente">
-                        <Select
-                            v-model="form.cliente_id"
-                            :options="[{ value: '', label: 'Sin cliente' }, ...clientes.map(c => ({ value: String(c.id), label: `${c.dni} - ${c.nombres || ''} ${c.apellidos || ''}` }))]"
-                        />
+                        <div class="space-y-3">
+                            <!-- Buscador por DNI -->
+                            <div class="flex gap-2">
+                                <input
+                                    v-model="dniSearch"
+                                    type="text"
+                                    maxlength="8"
+                                    placeholder="Buscar por DNI..."
+                                    class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    @keyup.enter="buscarCliente"
+                                />
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                                    :disabled="dniSearch.trim().length !== 8 || searchingDni"
+                                    @click="buscarCliente"
+                                >
+                                    <svg v-if="searchingDni" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    <span v-else>Buscar</span>
+                                </button>
+                            </div>
+
+                            <!-- Cliente encontrado -->
+                            <div
+                                v-if="clienteEncontrado"
+                                class="flex items-center justify-between rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-3 py-2"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium text-emerald-300">
+                                        {{ clienteEncontrado.dni }}
+                                    </p>
+                                    <p class="text-xs text-emerald-400/70">
+                                        {{ clienteEncontrado.nombres }} {{ clienteEncontrado.apellidos }}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="rounded p-1 text-emerald-400/50 hover:text-emerald-300 transition-colors"
+                                    @click="limpiarCliente"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Sugerencia: registrar nuevo cliente -->
+                            <div
+                                v-if="showNuevoClienteForm && !clienteEncontrado"
+                                class="rounded-lg border border-amber-800/50 bg-amber-900/20 px-3 py-2"
+                            >
+                                <p class="text-xs text-amber-400 mb-2">
+                                    Cliente con DNI <strong>{{ dniSearch }}</strong> no encontrado.
+                                </p>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-3 py-1.5 text-xs font-medium transition-colors"
+                                    @click="registrarNuevoCliente"
+                                >
+                                    + Registrar nuevo cliente
+                                </button>
+                            </div>
+
+                            <!-- Formulario nuevo cliente inline -->
+                            <div
+                                v-if="form.nuevo_cliente"
+                                class="space-y-2 rounded-lg border border-gray-700 bg-gray-800/50 p-3"
+                            >
+                                <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Nuevo Cliente</p>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">DNI</label>
+                                    <input
+                                        type="text"
+                                        maxlength="8"
+                                        :value="form.nuevo_cliente.dni"
+                                        disabled
+                                        class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-400"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Nombres</label>
+                                    <input
+                                        v-model="form.nuevo_cliente.nombres"
+                                        type="text"
+                                        placeholder="Nombres"
+                                        class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Apellidos</label>
+                                    <input
+                                        v-model="form.nuevo_cliente.apellidos"
+                                        type="text"
+                                        placeholder="Apellidos"
+                                        class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div class="flex gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors hover:bg-gray-600"
+                                        @click="cancelarNuevoCliente"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <span class="text-xs text-gray-500 self-center">Cliente se creará al registrar la venta</span>
+                                </div>
+                            </div>
+
+                            <!-- Select de clientes existentes (fallback) -->
+                            <div v-if="!clienteEncontrado && !form.nuevo_cliente">
+                                <Select
+                                    v-model="form.cliente_id"
+                                    :options="[{ value: '', label: 'Sin cliente' }, ...clientes.map(c => ({ value: String(c.id), label: `${c.dni} - ${c.nombres || ''} ${c.apellidos || ''}` }))]"
+                                />
+                            </div>
+                        </div>
                     </Card>
 
                     <Card title="Método de Pago">

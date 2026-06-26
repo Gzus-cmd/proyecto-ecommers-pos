@@ -28,9 +28,11 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
     Route::put('settings/profile/password', [ProfileController::class, 'updatePassword'])->name('settings.profile.password');
 
-    // Sede Config
-    Route::get('settings/sede', [SedeConfigController::class, 'edit'])->name('settings.sede.edit');
-    Route::post('settings/sede', [SedeConfigController::class, 'update'])->name('settings.sede.update');
+    // Sede Config — solo admin
+    Route::middleware('role:admin')->group(function () {
+        Route::get('settings/sede', [SedeConfigController::class, 'edit'])->name('settings.sede.edit');
+        Route::post('settings/sede', [SedeConfigController::class, 'update'])->name('settings.sede.update');
+    });
 });
 
 /*

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -10,6 +10,8 @@ import Badge from '@/Components/pos/ui/Badge.vue';
 import ConfirmDialog from '@/Components/pos/ConfirmDialog.vue';
 import { toast } from 'vue-sonner';
 import type { PaginatedData, ProductoLocal } from '@/types';
+
+const isAdmin = computed(() => usePage().props.auth?.user?.roles?.includes('admin') ?? false);
 
 const props = defineProps<{
     productos: PaginatedData<ProductoLocal>;
@@ -59,6 +61,7 @@ const columns = [
         <AppPageHeader title="Productos" description="Gestión de productos locales">
             <template #actions>
                 <Link
+                    v-if="isAdmin"
                     :href="route('pos.productos.create')"
                     class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
                 >
@@ -103,12 +106,14 @@ const columns = [
                         Ver
                     </Link>
                     <Link
+                        v-if="isAdmin"
                         :href="route('pos.productos.edit', (row as unknown as ProductoLocal).sku)"
                         class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-amber-500/10 text-amber-400 hover:bg-amber-500/20"
                     >
                         Editar
                     </Link>
                     <button
+                        v-if="isAdmin"
                         class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                         @click="confirmDelete((row as unknown as ProductoLocal).sku)"
                     >

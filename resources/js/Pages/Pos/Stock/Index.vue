@@ -87,14 +87,13 @@ const columns = [
                 </Badge>
             </template>
             <template #actions="{ row }">
-                <Button
+                <button
                     v-if="estadoLote(row as unknown as StockRow).label === 'Vencido'"
-                    size="sm"
-                    variant="destructive"
+                    class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-medium bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                     @click="retirarStock((row as unknown as StockRow).id)"
                 >
                     Retirar Stock
-                </Button>
+                </button>
             </template>
         </DataTable>
     </AppPageShell>
