@@ -15,13 +15,17 @@ defineProps<{
 
 <template>
     <AppPageShell>
-        <AppPageHeader title="Detalle de Producto" :description="`${producto.nombre_comercial} (${producto.sku})`">
+        <AppPageHeader
+            title="Detalle de Producto"
+            :description="`${producto.nombre_comercial} (${producto.sku})`"
+            back-route="pos.productos.index"
+        >
             <template #actions>
                 <Link
-                    :href="route('pos.productos.index')"
-                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800"
+                    :href="route('pos.productos.edit', producto.sku)"
+                    class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
                 >
-                    Volver
+                    Editar Producto
                 </Link>
             </template>
         </AppPageHeader>
@@ -88,21 +92,6 @@ defineProps<{
                     </div>
                 </div>
             </Card>
-
-            <div class="mt-4 flex items-center gap-3">
-                <Link
-                    :href="route('pos.productos.edit', producto.sku)"
-                    class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
-                >
-                    Editar Producto
-                </Link>
-                <Link
-                    :href="route('pos.productos.index')"
-                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800"
-                >
-                    Volver al listado
-                </Link>
-            </div>
         </div>
     </AppPageShell>
 </template>

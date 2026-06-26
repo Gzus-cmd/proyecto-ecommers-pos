@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
+import ToastNotification from '@/Components/pos/ToastNotification.vue';
 
 const sidebarOpen = ref(false);
 const userMenuOpen = ref(false);
@@ -14,63 +15,14 @@ const page = usePage<{
             email: string;
         } | null;
     };
+    sede?: {
+        nombre?: string;
+        codigo?: string;
+    };
 }>();
 
 const user = page.props.auth?.user;
-
-interface NavItem {
-    label: string;
-    route: string;
-    svg: string;
-}
-
-const navItems: NavItem[] = [
-    {
-        label: 'Dashboard',
-        route: 'pos.dashboard',
-        svg: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-    },
-    {
-        label: 'Productos',
-        route: 'pos.productos.index',
-        svg: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-    },
-    {
-        label: 'Lotes',
-        route: 'pos.lotes.index',
-        svg: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-    },
-    {
-        label: 'Métodos de Pago',
-        route: 'pos.metodos-pago.index',
-        svg: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
-    },
-    {
-        label: 'Clientes',
-        route: 'pos.clientes.index',
-        svg: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
-    },
-    {
-        label: 'Usuarios',
-        route: 'pos.users.index',
-        svg: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-    },
-    {
-        label: 'Stock',
-        route: 'pos.stock.index',
-        svg: 'M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4',
-    },
-    {
-        label: 'Ventas',
-        route: 'pos.ventas.index',
-        svg: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
-    },
-    {
-        label: 'Detalle Ventas',
-        route: 'pos.detalle-ventas.index',
-        svg: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
-    },
-];
+const sedeNombre = page.props.sede?.nombre;
 
 function isActive(routeName: string): boolean {
     const url = usePage().url;
@@ -119,26 +71,156 @@ function handleLogout() {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <span class="text-lg font-bold text-white">Pharma Victoria POS</span>
+                <div class="flex flex-col">
+                    <span class="text-lg font-bold leading-tight text-white">Pharma Victoria POS</span>
+                    <span v-if="sedeNombre" class="text-xs font-medium text-blue-400">{{ sedeNombre }}</span>
+                </div>
             </div>
 
             <!-- Nav -->
             <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+                <!-- Dashboard (alone at top) -->
                 <Link
-                    v-for="item in navItems"
-                    :key="item.route"
-                    :href="route(item.route)"
+                    :href="route('pos.dashboard')"
                     :class="[
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                        isActive(item.route)
+                        isActive('pos.dashboard')
                             ? 'bg-blue-600/20 text-blue-400'
                             : 'text-gray-400 hover:bg-gray-800 hover:text-white',
                     ]"
                 >
                     <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="item.svg" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    {{ item.label }}
+                    Dashboard
+                </Link>
+
+                <div class="pt-4 pb-1">
+                    <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Gestión</p>
+                </div>
+                <Link
+                    :href="route('pos.users.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.users.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Usuarios
+                </Link>
+                <Link
+                    :href="route('pos.clientes.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.clientes.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Clientes
+                </Link>
+
+                <div class="pt-4 pb-1">
+                    <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Productos</p>
+                </div>
+                <Link
+                    :href="route('pos.productos.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.productos.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Productos
+                </Link>
+                <Link
+                    :href="route('pos.lotes.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.lotes.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Lotes
+                </Link>
+
+                <div class="pt-4 pb-1">
+                    <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Ventas</p>
+                </div>
+                <Link
+                    :href="route('pos.ventas.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.ventas.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" />
+                    </svg>
+                    Ventas
+                </Link>
+                <Link
+                    :href="route('pos.detalle-ventas.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.detalle-ventas.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    </svg>
+                    Detalle Ventas
+                </Link>
+                <Link
+                    :href="route('pos.stock.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.stock.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                    </svg>
+                    Stock
+                </Link>
+
+                <div class="pt-4 pb-1">
+                    <p class="px-3 text-xs font-medium uppercase tracking-wider text-gray-500">Configuración</p>
+                </div>
+                <Link
+                    :href="route('pos.metodos-pago.index')"
+                    :class="[
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                        isActive('pos.metodos-pago.index')
+                            ? 'bg-blue-600/20 text-blue-400'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                    ]"
+                >
+                    <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Métodos de Pago
                 </Link>
             </nav>
 
@@ -231,17 +313,7 @@ function handleLogout() {
                 <slot />
             </main>
 
-            <Toaster
-                position="top-right"
-                :close-button="true"
-                :toast-options="{
-                    style: {
-                        background: '#1f2937',
-                        color: '#f3f4f6',
-                        border: '1px solid #374151',
-                    },
-                }"
-            />
+            <ToastNotification />
         </div>
     </div>
 </template>

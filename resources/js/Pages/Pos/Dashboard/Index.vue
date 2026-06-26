@@ -26,26 +26,36 @@ interface StockBajoItem {
     sede: string;
 }
 
-const props = defineProps<{
-    totalProductos: number;
-    ventasHoy: number;
-    ventasHoyMonto: number;
-    stockBajo: number;
-    stockBajoProductos: StockBajoItem[];
-    productosPorVencer: ProductoVencer[];
-    productosPorVencerCount: number;
-    ventasPorDia: VentaDia[];
-    productosPorEstado: { activos: number; inactivos: number };
-}>();
+const props = withDefaults(defineProps<{
+    totalProductos?: number;
+    ventasHoy?: number;
+    ventasHoyMonto?: number;
+    stockBajo?: number;
+    stockBajoProductos?: StockBajoItem[];
+    productosPorVencer?: ProductoVencer[];
+    productosPorVencerCount?: number;
+    ventasPorDia?: VentaDia[];
+    productosPorEstado?: { activos: number; inactivos: number };
+}>(), {
+    totalProductos: 0,
+    ventasHoy: 0,
+    ventasHoyMonto: 0,
+    stockBajo: 0,
+    stockBajoProductos: () => [],
+    productosPorVencer: () => [],
+    productosPorVencerCount: 0,
+    ventasPorDia: () => [],
+    productosPorEstado: () => ({ activos: 0, inactivos: 0 }),
+});
 
 const showVencerModal = ref(false);
 const showStockBajoModal = ref(false);
 
 const productosVencidos = computed(() =>
-    props.productosPorVencer.filter((p) => p.dias_restantes <= 0),
+    (props.productosPorVencer ?? []).filter((p) => p.dias_restantes <= 0),
 );
 const productosProximos = computed(() =>
-    props.productosPorVencer.filter((p) => p.dias_restantes > 0),
+    (props.productosPorVencer ?? []).filter((p) => p.dias_restantes > 0),
 );
 
 function diasColor(dias: number): string {
@@ -61,51 +71,56 @@ function diasLabel(dias: number): string {
     return `${dias} días`;
 }
 
-const cards = [
+const cards = computed(() => [
     {
         label: 'Total Productos',
-        value: props.totalProductos,
+        value: props.totalProductos ?? 0,
         icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
         color: 'blue',
     },
     {
         label: 'Ventas Hoy',
-        value: props.ventasHoy,
-        subtitle: `S/ ${props.ventasHoyMonto.toFixed(2)}`,
+        value: props.ventasHoy ?? 0,
+        subtitle: `S/ ${(props.ventasHoyMonto ?? 0).toFixed(2)}`,
         icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
         color: 'emerald',
     },
     {
         label: 'Productos por Vencer',
-        value: props.productosPorVencerCount,
+        value: props.productosPorVencerCount ?? 0,
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
         color: 'amber',
         clickable: true,
     },
     {
         label: 'Stock Bajo',
-        value: props.stockBajo,
+        value: props.stockBajo ?? 0,
         icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z',
         color: 'red',
         clickable: true,
     },
-];
+]);
 
-const totalProductos = computed(() => props.productosPorEstado.activos + props.productosPorEstado.inactivos);
+const totalProductos = computed(() => (props.productosPorEstado?.activos ?? 0) + (props.productosPorEstado?.inactivos ?? 0));
 const donutPercentage = computed(() =>
-    totalProductos.value > 0 ? (props.productosPorEstado.activos / totalProductos.value) * 100 : 0,
+    totalProductos.value > 0 ? ((props.productosPorEstado?.activos ?? 0) / totalProductos.value) * 100 : 0,
 );
 const donutCircumference = 2 * Math.PI * 40;
 const donutOffset = computed(() => donutCircumference - (donutPercentage.value / 100) * donutCircumference);
 
-const maxVentas = computed(() => Math.max(...props.ventasPorDia.map((d) => d.total), 1));
+const ventasData = computed(() => props.ventasPorDia ?? []);
+const maxVentas = computed(() => {
+    const values = ventasData.value.map((d) => d.total);
+    return values.length > 0 ? Math.max(...values) : 1;
+});
 
 function formatDate(fecha: string): string {
+    if (!fecha) return '';
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es', { weekday: 'short' });
 }
 
-function cardClicked(card: typeof cards[0]) {
+function cardClicked(card: ReturnType<typeof cards.value>[0]) {
     if (card.label === 'Productos por Vencer') {
         showVencerModal.value = true;
     }
@@ -167,7 +182,7 @@ function cardClicked(card: typeof cards[0]) {
 
                 <div class="flex items-end justify-between gap-3" style="height: 160px">
                     <div
-                        v-for="dia in ventasPorDia"
+                        v-for="dia in ventasData"
                         :key="dia.fecha"
                         class="flex flex-1 flex-col items-center justify-end gap-2"
                     >

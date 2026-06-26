@@ -41,6 +41,9 @@ function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
     if (page?.props?.flash?.error) toast.error(page.props.flash.error);
+    if (page?.props?.errors && Object.keys(page.props.errors).length > 0) {
+        toast.error(Object.values(page.props.errors).join(', '));
+    }
 }
 onMounted(() => showFlash());
 

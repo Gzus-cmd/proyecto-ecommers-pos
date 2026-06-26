@@ -3,25 +3,36 @@ import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import DataTable from '@/Components/pos/DataTable.vue';
 import Badge from '@/Components/pos/ui/Badge.vue';
-import type { PaginatedData, StockLocal } from '@/types';
+import type { PaginatedData } from '@/types';
+
+interface StockRow {
+    id: number;
+    sku_producto: string;
+    numero_lote: string;
+    fecha_vencimiento: string;
+    cantidad_inicial: number;
+    stock_actual: number;
+    producto_nombre: string;
+}
 
 defineProps<{
-    stock: PaginatedData<StockLocal>;
+    stock: PaginatedData<StockRow>;
     search?: string;
 }>();
 
 const columns = [
-    { key: 'sede', label: 'Sede' },
-    { key: 'producto', label: 'Producto' },
-    { key: 'sku', label: 'SKU' },
+    { key: 'producto_nombre', label: 'Producto' },
+    { key: 'sku_producto', label: 'SKU' },
     { key: 'numero_lote', label: 'N° Lote' },
-    { key: 'cantidad_disponible', label: 'Cantidad' },
+    { key: 'fecha_vencimiento', label: 'Vencimiento' },
+    { key: 'cantidad_inicial', label: 'Cant. Inicial' },
+    { key: 'stock_actual', label: 'Stock Actual' },
 ];
 </script>
 
 <template>
     <AppPageShell>
-        <AppPageHeader title="Stock" description="Inventario de productos por sede" />
+        <AppPageHeader title="Stock" description="Inventario de productos — stock calculado por lote" />
 
         <DataTable
             :columns="columns"
@@ -33,24 +44,12 @@ const columns = [
             :to="stock.to"
             :search="search"
             base-route="pos.stock.index"
-            search-placeholder="Buscar por producto o sede..."
+            search-placeholder="Buscar por producto o SKU..."
             :show-search-button="true"
         >
-            <template #cell-sede="{ row }">
-                <span>{{ (row as unknown as StockLocal).sede?.nombre || '-' }}</span>
-            </template>
-            <template #cell-producto="{ row }">
-                <span>{{ (row as unknown as StockLocal).lote_local?.producto?.nombre_comercial || '-' }}</span>
-            </template>
-            <template #cell-sku="{ row }">
-                <span>{{ (row as unknown as StockLocal).lote_local?.sku_producto || '-' }}</span>
-            </template>
-            <template #cell-numero_lote="{ row }">
-                <span>{{ (row as unknown as StockLocal).lote_local?.numero_lote || '-' }}</span>
-            </template>
-            <template #cell-cantidad_disponible="{ row }">
-                <Badge :variant="(row as unknown as StockLocal).cantidad_disponible > 0 ? 'success' : 'danger'">
-                    {{ (row as unknown as StockLocal).cantidad_disponible }}
+            <template #cell-stock_actual="{ row }">
+                <Badge :variant="(row as unknown as StockRow).stock_actual > 0 ? 'success' : 'danger'">
+                    {{ (row as unknown as StockRow).stock_actual }}
                 </Badge>
             </template>
         </DataTable>

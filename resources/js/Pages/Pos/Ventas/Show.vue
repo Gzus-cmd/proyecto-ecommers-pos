@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import Card from '@/Components/pos/ui/Card.vue';
@@ -13,16 +11,11 @@ defineProps<{
 
 <template>
     <AppPageShell>
-        <AppPageHeader title="Detalle de Venta" :description="`Venta #${venta.id}`">
-            <template #actions>
-                <Link
-                    :href="route('pos.ventas.index')"
-                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800"
-                >
-                    Volver
-                </Link>
-            </template>
-        </AppPageHeader>
+        <AppPageHeader
+            title="Detalle de Venta"
+            :description="`Venta #${venta.id}`"
+            back-route="pos.ventas.index"
+        />
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card title="Información General">

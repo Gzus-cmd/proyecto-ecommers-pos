@@ -25,20 +25,39 @@ class LoteLocalFactory extends Factory
         ];
     }
 
-    public function porVencer(): static
+    /** Lote con vencimiento fresco (+1 año) */
+    public function fresh(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'fecha_vencimiento' => fake()->dateTimeBetween('+11 months', '+13 months'),
+        ]);
+    }
+
+    /** Lote próximo a vencer (entre hoy y 30 días) */
+    public function nearExpiry(): static
     {
         return $this->state(fn (array $attributes) => [
             'fecha_vencimiento' => fake()->dateTimeBetween('now', '+30 days'),
         ]);
     }
 
-    public function vencido(): static
+    /** Lote ya vencido */
+    public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
             'fecha_vencimiento' => fake()->dateTimeBetween('-6 months', '-1 day'),
         ]);
     }
 
+    /** Asignar un sku_producto específico */
+    public function withProduct(string $sku): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sku_producto' => $sku,
+        ]);
+    }
+
+    /** Lote con stock bajo */
     public function stockBajo(): static
     {
         return $this->state(fn (array $attributes) => [

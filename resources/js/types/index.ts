@@ -75,16 +75,6 @@ export interface LoteLocal {
     user?: User;
 }
 
-export interface StockLocal {
-    id: number;
-    sede_id: number;
-    lote_local_id: number;
-    cantidad_disponible: number;
-    sede?: Sede;
-    lote_local?: LoteLocal;
-    producto?: ProductoLocal;
-}
-
 export interface VentaFisica {
     id: number;
     sede_id: number;

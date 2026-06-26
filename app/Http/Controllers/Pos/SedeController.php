@@ -57,12 +57,11 @@ class SedeController extends Controller
 
     public function destroy(Sede $sede)
     {
-        $hasStock = $sede->stockLocal()->exists();
         $hasVentas = $sede->ventasFisicas()->exists();
 
-        if ($hasStock || $hasVentas) {
+        if ($hasVentas) {
             return redirect()->route('pos.sedes.index')
-                ->with('error', 'No se puede eliminar la sede porque tiene stock o ventas asociadas.');
+                ->with('error', 'No se puede eliminar la sede porque tiene ventas asociadas.');
         }
 
         $sede->delete();

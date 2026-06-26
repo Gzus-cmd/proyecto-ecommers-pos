@@ -33,7 +33,7 @@ const props = withDefaults(
 
 function visit(url: string | null) {
     if (url) {
-        router.get(url, {}, { preserveState: true, preserveScroll: true });
+        router.get(url, { search: props.search || undefined }, { preserveState: true, preserveScroll: true });
     }
 }
 
@@ -117,7 +117,7 @@ function onSearch(value: string) {
                 <button
                     :disabled="currentPage <= 1"
                     class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    @click="visit(currentPage > 1 ? `${baseRoute}?page=${currentPage - 1}` : null)"
+                    @click="currentPage > 1 ? visit(`${route(baseRoute)}?page=${currentPage - 1}`) : null"
                 >
                     Anterior
                 </button>
@@ -130,14 +130,14 @@ function onSearch(value: string) {
                             ? 'border-blue-600 bg-blue-600 text-white'
                             : 'border-gray-700 text-gray-300 hover:bg-gray-800',
                     ]"
-                    @click="visit(`${baseRoute}?page=${link}`)"
+                    @click="visit(`${route(baseRoute)}?page=${link}`)"
                 >
                     {{ link }}
                 </button>
                 <button
                     :disabled="currentPage >= lastPage"
                     class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                    @click="visit(currentPage < lastPage ? `${baseRoute}?page=${currentPage + 1}` : null)"
+                    @click="currentPage < lastPage ? visit(`${route(baseRoute)}?page=${currentPage + 1}`) : null"
                 >
                     Siguiente
                 </button>

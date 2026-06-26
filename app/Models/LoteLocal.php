@@ -28,14 +28,24 @@ class LoteLocal extends Model
         ];
     }
 
+    /** Stock actual calculado: cantidad_disponible - SUM(detalle_ventas.cantidad) */
+    public function getStockActualAttribute(): int
+    {
+        $vendido = DetalleVenta::where('lote_local_id', $this->id)
+            ->whereHas('venta')
+            ->sum('cantidad');
+
+        return $this->cantidad_disponible - (int) $vendido;
+    }
+
     public function producto()
     {
         return $this->belongsTo(ProductoLocal::class, 'sku_producto', 'sku');
     }
 
-    public function stockLocal()
+    public function detallesVenta()
     {
-        return $this->hasMany(StockLocal::class);
+        return $this->hasMany(DetalleVenta::class, 'lote_local_id');
     }
 
     public function user()

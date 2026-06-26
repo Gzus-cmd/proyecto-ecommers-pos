@@ -45,9 +45,9 @@ const ROUTES: Record<string, string> = {
     'pos.metodos-pago.index': '/pos/metodos-pago',
     'pos.metodos-pago.create': '/pos/metodos-pago/create',
     'pos.metodos-pago.store': '/pos/metodos-pago',
-    'pos.metodos-pago.edit': '/pos/metodos-pago/{metodos_pago}/edit',
-    'pos.metodos-pago.update': '/pos/metodos-pago/{metodos_pago}',
-    'pos.metodos-pago.destroy': '/pos/metodos-pago/{metodos_pago}',
+    'pos.metodos-pago.edit': '/pos/metodos-pago/{metodo_pago}/edit',
+    'pos.metodos-pago.update': '/pos/metodos-pago/{metodo_pago}',
+    'pos.metodos-pago.destroy': '/pos/metodos-pago/{metodo_pago}',
 
     // ── Clientes ───────────────────────────────────────────
     'pos.clientes.index': '/pos/clientes',

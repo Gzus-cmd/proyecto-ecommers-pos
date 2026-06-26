@@ -15,6 +15,7 @@ class DetalleVenta extends Model
     protected $fillable = [
         'venta_id',
         'producto_sku',
+        'lote_local_id',
         'cantidad',
         'precio_unitario',
         'subtotal',
@@ -37,5 +38,10 @@ class DetalleVenta extends Model
     public function producto()
     {
         return $this->belongsTo(ProductoLocal::class, 'producto_sku', 'sku');
+    }
+
+    public function lote()
+    {
+        return $this->belongsTo(LoteLocal::class, 'lote_local_id');
     }
 }

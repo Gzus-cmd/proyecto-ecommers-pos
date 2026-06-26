@@ -36,11 +36,6 @@ class Sede extends Model
         $query->where('activo', true);
     }
 
-    public function stockLocal()
-    {
-        return $this->hasMany(StockLocal::class);
-    }
-
     public function ventasFisicas()
     {
         return $this->hasMany(VentaFisica::class);

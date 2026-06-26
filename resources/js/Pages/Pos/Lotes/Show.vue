@@ -18,13 +18,17 @@ function isExpired(date: string): boolean {
 
 <template>
     <AppPageShell>
-        <AppPageHeader title="Detalle de Lote" :description="`Lote: ${lote.numero_lote}`">
+        <AppPageHeader
+            title="Detalle de Lote"
+            :description="`Lote: ${lote.numero_lote}`"
+            back-route="pos.lotes.index"
+        >
             <template #actions>
                 <Link
-                    :href="route('pos.lotes.index')"
-                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800"
+                    :href="route('pos.lotes.edit', lote.id)"
+                    class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
                 >
-                    Volver
+                    Editar Lote
                 </Link>
             </template>
         </AppPageHeader>
@@ -69,21 +73,6 @@ function isExpired(date: string): boolean {
                     </div>
                 </div>
             </Card>
-
-            <div class="mt-4 flex items-center gap-3">
-                <Link
-                    :href="route('pos.lotes.edit', lote.id)"
-                    class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
-                >
-                    Editar Lote
-                </Link>
-                <Link
-                    :href="route('pos.lotes.index')"
-                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-800"
-                >
-                    Volver al listado
-                </Link>
-            </div>
         </div>
     </AppPageShell>
 </template>

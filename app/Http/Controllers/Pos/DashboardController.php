@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
-use App\Models\StockLocal;
 use App\Models\VentaFisica;
 use Illuminate\Http\Request;
 
@@ -16,7 +15,25 @@ class DashboardController extends Controller
         $totalProductos = ProductoLocal::count();
         $ventasHoy = VentaFisica::whereDate('created_at', today())->count();
         $ventasHoyMonto = VentaFisica::whereDate('created_at', today())->sum('total');
-        $stockBajo = StockLocal::where('cantidad_disponible', '<', 10)->count();
+
+        // Stock bajo calculado desde lotes (stock_actual < 10)
+        $lotes = LoteLocal::with('producto')->get();
+        $stockBajo = 0;
+        $stockBajoProductos = collect();
+
+        foreach ($lotes as $lote) {
+            $stockActual = $lote->stock_actual;
+            if ($stockActual > 0 && $stockActual < 10) {
+                $stockBajo++;
+                $stockBajoProductos->push([
+                    'producto' => $lote->producto?->nombre_comercial ?? '-',
+                    'sku' => $lote->sku_producto,
+                    'cantidad' => $stockActual,
+                    'lote' => $lote->numero_lote,
+                    'sede' => '-',
+                ]);
+            }
+        }
 
         // Productos por vencer (<= 30 días)
         $fechaLimite = now()->addDays(30);
@@ -35,23 +52,6 @@ class DashboardController extends Controller
             });
 
         $productosPorVencerCount = $productosPorVencer->count();
-
-        // Stock bajo (<= 10 unidades)
-        $stockBajoProductos = StockLocal::with(['loteLocal.producto', 'sede'])
-            ->where('cantidad_disponible', '<', 10)
-            ->where('cantidad_disponible', '>', 0)
-            ->orderBy('cantidad_disponible')
-            ->limit(50)
-            ->get()
-            ->map(function ($stock) {
-                return [
-                    'producto' => $stock->loteLocal?->producto?->nombre_comercial ?? '-',
-                    'sku' => $stock->loteLocal?->sku_producto ?? '-',
-                    'cantidad' => $stock->cantidad_disponible,
-                    'lote' => $stock->loteLocal?->numero_lote ?? '-',
-                    'sede' => $stock->sede?->nombre ?? '-',
-                ];
-            });
 
         // Ventas por día (últimos 7 días)
         $ventasPorDia = VentaFisica::query()
