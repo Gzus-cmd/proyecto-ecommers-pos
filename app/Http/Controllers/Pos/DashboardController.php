@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         $totalProductos = ProductoLocal::count();
         $ventasHoy = VentaFisica::whereDate('created_at', today())->count();
-        $ventasHoyMonto = VentaFisica::whereDate('created_at', today())->sum('total');
+        $ventasHoyMonto = (float) VentaFisica::whereDate('created_at', today())->sum('total');
 
         // Stock bajo calculado desde lotes (stock_actual < 10)
         $lotes = LoteLocal::with('producto')->get();
