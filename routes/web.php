@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +21,11 @@ Route::middleware('guest')->group(function () {
 */
 Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('logout');
+
+    // Settings
+    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('settings.profile');
+    Route::put('settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::put('settings/profile/password', [ProfileController::class, 'updatePassword'])->name('settings.profile.password');
 });
 
 /*

@@ -22,10 +22,12 @@ const props = withDefaults(
         search?: string;
         baseRoute: string;
         searchPlaceholder?: string;
+        showSearchButton?: boolean;
     }>(),
     {
         search: '',
         searchPlaceholder: 'Buscar...',
+        showSearchButton: false,
     },
 );
 
@@ -53,6 +55,7 @@ function onSearch(value: string) {
                         <SearchInput
                             :model-value="search"
                             :placeholder="searchPlaceholder"
+                            :show-button="showSearchButton"
                             @update:model-value="onSearch"
                         />
                     </div>

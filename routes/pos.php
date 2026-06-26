@@ -10,6 +10,7 @@ use App\Http\Controllers\Pos\ClienteController;
 use App\Http\Controllers\Pos\StockLocalController;
 use App\Http\Controllers\Pos\VentaFisicaController;
 use App\Http\Controllers\Pos\DetalleVentaController;
+use App\Http\Controllers\Pos\UserController;
 
 Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -24,4 +25,5 @@ Route::prefix('pos')->name('pos.')->middleware('auth')->group(function () {
     Route::get('ventas', [VentaFisicaController::class, 'index'])->name('ventas.index');
     Route::get('ventas/{venta}', [VentaFisicaController::class, 'show'])->name('ventas.show');
     Route::get('detalle-ventas', [DetalleVentaController::class, 'index'])->name('detalle-ventas.index');
+    Route::get('users', [UserController::class, 'index'])->name('users.index');
 });

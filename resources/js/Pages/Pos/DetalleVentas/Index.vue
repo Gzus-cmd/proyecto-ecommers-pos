@@ -35,6 +35,7 @@ const columns = [
             :search="search"
             base-route="pos.detalle-ventas.index"
             search-placeholder="Buscar por producto o venta..."
+            :show-search-button="true"
         >
             <template #cell-venta_id="{ row }">
                 <a

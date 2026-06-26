@@ -65,6 +65,14 @@ const ROUTES: Record<string, string> = {
 
     // ── Detalle Ventas ─────────────────────────────────────
     'pos.detalle-ventas.index': '/pos/detalle-ventas',
+
+    // ── Usuarios ───────────────────────────────────────────
+    'pos.users.index': '/pos/users',
+
+    // ── Settings ───────────────────────────────────────────
+    'settings.profile': '/settings/profile',
+    'settings.profile.update': '/settings/profile',
+    'settings.profile.password': '/settings/profile/password',
 };
 
 export function route(name: string, params?: Params): string {

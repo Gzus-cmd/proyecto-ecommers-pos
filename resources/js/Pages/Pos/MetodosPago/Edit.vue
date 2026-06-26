@@ -4,6 +4,7 @@ import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import FormPage from '@/Components/pos/FormPage.vue';
 import FormField from '@/Components/pos/FormField.vue';
 import Input from '@/Components/pos/ui/Input.vue';
+import Toggle from '@/Components/pos/ui/Toggle.vue';
 import { toast } from 'vue-sonner';
 import type { MetodoPago } from '@/types';
 
@@ -36,10 +37,7 @@ function submit() {
             </FormField>
 
             <FormField label="Estado">
-                <label class="flex items-center gap-2">
-                    <input v-model="form.activo" type="checkbox" class="rounded border-gray-700 bg-gray-900 text-blue-600" />
-                    <span class="text-sm text-gray-300">Activo</span>
-                </label>
+                <Toggle v-model="form.activo" label="Activo" />
             </FormField>
         </FormPage>
     </AppPageShell>

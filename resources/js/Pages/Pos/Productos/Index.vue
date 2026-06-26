@@ -81,6 +81,7 @@ const columns = [
             :search="search"
             base-route="pos.productos.index"
             search-placeholder="Buscar por SKU, nombre comercial o genérico..."
+            :show-search-button="true"
         >
             <template #cell-precio_venta="{ row }">
                 <span>S/ {{ Number((row as unknown as ProductoLocal).precio_venta).toFixed(2) }}</span>

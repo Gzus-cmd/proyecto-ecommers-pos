@@ -22,7 +22,6 @@ interface NavItem {
     label: string;
     route: string;
     svg: string;
-    highlight?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -45,7 +44,6 @@ const navItems: NavItem[] = [
         label: 'Lotes',
         route: 'pos.lotes.index',
         svg: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
-        highlight: true,
     },
     {
         label: 'Métodos de Pago',
@@ -56,6 +54,11 @@ const navItems: NavItem[] = [
         label: 'Clientes',
         route: 'pos.clientes.index',
         svg: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
+    },
+    {
+        label: 'Usuarios',
+        route: 'pos.users.index',
+        svg: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
     },
     {
         label: 'Stock',
@@ -76,8 +79,20 @@ const navItems: NavItem[] = [
 
 function isActive(routeName: string): boolean {
     const url = usePage().url;
-    const prefix = '/' + routeName.replace(/\./g, '/').replace('pos/', 'pos/');
-    return url.startsWith(prefix);
+    const path = url.split('?')[0];
+
+    // Dashboard is the root /pos
+    if (routeName === 'pos.dashboard') {
+        return path === '/pos' || path === '/pos/';
+    }
+
+    // Convert pos.sedes.index → /pos/sedes, pos.productos.edit → /pos/productos, etc.
+    const prefix = '/' + routeName
+        .replace(/^pos\./, 'pos/')
+        .replace(/\./g, '/')
+        .replace(/\/index$/, '');
+
+    return path.startsWith(prefix);
 }
 
 function handleLogout() {
@@ -122,7 +137,6 @@ function handleLogout() {
                         isActive(item.route)
                             ? 'bg-blue-600/20 text-blue-400'
                             : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                        item.highlight && !isActive(item.route) && 'bg-blue-900/20 border-l-2 border-blue-500',
                     ]"
                 >
                     <Link
@@ -166,8 +180,19 @@ function handleLogout() {
                     v-if="userMenuOpen"
                     class="absolute bottom-full left-0 right-0 mb-1 mx-3 rounded-lg border border-gray-800 bg-gray-900 shadow-xl"
                 >
+                    <Link
+                        :href="route('settings.profile')"
+                        class="flex w-full items-center gap-3 rounded-t-lg px-4 py-2.5 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-white"
+                        @click="userMenuOpen = false"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Configuración
+                    </Link>
                     <button
-                        class="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-gray-400 transition-colors hover:bg-gray-800 hover:text-red-400"
+                        class="flex w-full items-center gap-3 rounded-b-lg px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-900/20"
                         @click="handleLogout"
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

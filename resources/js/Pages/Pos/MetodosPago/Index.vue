@@ -77,6 +77,7 @@ const columns = [
             :search="search"
             base-route="pos.metodos-pago.index"
             search-placeholder="Buscar por nombre..."
+            :show-search-button="true"
         >
             <template #cell-activo="{ row }">
                 <BadgeActivo :activo="(row as unknown as MetodoPago).activo" />

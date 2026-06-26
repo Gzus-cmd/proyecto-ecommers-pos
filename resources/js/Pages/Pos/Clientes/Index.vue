@@ -81,6 +81,7 @@ const columns = [
             :search="search"
             base-route="pos.clientes.index"
             search-placeholder="Buscar por nombre, apellido o DNI..."
+            :show-search-button="true"
         >
             <template #cell-telefono="{ row }">
                 <span class="text-gray-400">{{ (row as unknown as Cliente).telefono || '—' }}</span>

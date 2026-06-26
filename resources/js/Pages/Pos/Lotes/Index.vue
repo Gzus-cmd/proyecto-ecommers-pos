@@ -84,6 +84,7 @@ const columns = [
             :search="search"
             base-route="pos.lotes.index"
             search-placeholder="Buscar por número de lote o SKU..."
+            :show-search-button="true"
         >
             <template #cell-producto="{ row }">
                 <span>{{ (row as unknown as LoteLocal).producto?.nombre_comercial || '-' }}</span>

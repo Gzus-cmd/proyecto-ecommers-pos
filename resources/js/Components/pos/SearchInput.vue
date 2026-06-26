@@ -5,10 +5,12 @@ const props = withDefaults(
     defineProps<{
         modelValue?: string;
         placeholder?: string;
+        showButton?: boolean;
     }>(),
     {
         modelValue: '',
         placeholder: 'Buscar...',
+        showButton: false,
     },
 );
 
@@ -18,20 +20,15 @@ const emit = defineEmits<{
 
 const localValue = ref(props.modelValue);
 
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-function debouncedEmit(value: string): void {
-    if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-        emit('update:modelValue', value);
-    }, 400);
+function onSearch() {
+    emit('update:modelValue', localValue.value);
 }
 
-watch(localValue, (val) => {
-    if (val !== props.modelValue) {
-        debouncedEmit(val);
+function onKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter') {
+        onSearch();
     }
-});
+}
 
 watch(
     () => props.modelValue,
@@ -39,33 +36,40 @@ watch(
         localValue.value = val;
     },
 );
-
-function onInput(e: Event) {
-    localValue.value = (e.target as HTMLInputElement).value;
-}
 </script>
 
 <template>
-    <div class="relative">
-        <svg
-            class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+    <div class="relative flex gap-2">
+        <div class="relative flex-1">
+            <svg
+                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+            </svg>
+            <input
+                :value="localValue"
+                :placeholder="placeholder"
+                type="text"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                @input="localValue = ($event.target as HTMLInputElement).value"
+                @keydown="onKeydown"
             />
-        </svg>
-        <input
-            :value="localValue"
-            :placeholder="placeholder"
-            type="text"
-            class="w-full rounded-lg border border-gray-700 bg-gray-900 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-            @input="onInput"
-        />
+        </div>
+        <button
+            v-if="showButton"
+            type="button"
+            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            @click="onSearch"
+        >
+            Buscar
+        </button>
     </div>
 </template>

@@ -34,6 +34,7 @@ const columns = [
             :search="search"
             base-route="pos.stock.index"
             search-placeholder="Buscar por producto o sede..."
+            :show-search-button="true"
         >
             <template #cell-sede="{ row }">
                 <span>{{ (row as unknown as StockLocal).sede?.nombre || '-' }}</span>

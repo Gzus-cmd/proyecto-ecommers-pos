@@ -34,6 +34,7 @@ const columns = [
             :search="search"
             base-route="pos.ventas.index"
             search-placeholder="Buscar por sede o usuario..."
+            :show-search-button="true"
         >
             <template #cell-sede="{ row }">
                 <span>{{ (row as unknown as VentaFisica).sede?.nombre || '-' }}</span>

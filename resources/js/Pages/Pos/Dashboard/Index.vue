@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 
@@ -9,11 +10,19 @@ interface MetricCard {
     color: string;
 }
 
+interface VentaDia {
+    fecha: string;
+    total: number;
+    monto: number;
+}
+
 const props = defineProps<{
     totalProductos: number;
     ventasHoy: number;
     sedesActivas: number;
     stockBajo: number;
+    ventasPorDia: VentaDia[];
+    productosPorEstado: { activos: number; inactivos: number };
 }>();
 
 const cards: MetricCard[] = [
@@ -42,6 +51,20 @@ const cards: MetricCard[] = [
         color: 'red',
     },
 ];
+
+const totalProductos = computed(() => props.productosPorEstado.activos + props.productosPorEstado.inactivos);
+const donutPercentage = computed(() =>
+    totalProductos.value > 0 ? (props.productosPorEstado.activos / totalProductos.value) * 100 : 0,
+);
+const donutCircumference = 2 * Math.PI * 40; // r=40
+const donutOffset = computed(() => donutCircumference - (donutPercentage.value / 100) * donutCircumference);
+
+const maxVentas = computed(() => Math.max(...props.ventasPorDia.map((d) => d.total), 1));
+
+function formatDate(fecha: string): string {
+    const d = new Date(fecha + 'T00:00:00');
+    return d.toLocaleDateString('es', { weekday: 'short' });
+}
 </script>
 
 <template>
@@ -53,7 +76,8 @@ const cards: MetricCard[] = [
             <p class="mt-1 text-sm text-gray-400">Resumen del sistema</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <!-- Metric cards -->
+        <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div
                 v-for="card in cards"
                 :key="card.label"
@@ -76,6 +100,91 @@ const cards: MetricCard[] = [
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="card.icon" />
                         </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Bar chart: Ventas por día -->
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 class="mb-1 text-base font-semibold text-white">Ventas por Día</h3>
+                <p class="mb-6 text-sm text-gray-400">Últimos 7 días</p>
+
+                <div class="flex items-end justify-between gap-3" style="height: 160px">
+                    <div
+                        v-for="dia in ventasPorDia"
+                        :key="dia.fecha"
+                        class="flex flex-1 flex-col items-center justify-end gap-2"
+                    >
+                        <span class="text-xs font-medium text-gray-300">{{ dia.total }}</span>
+                        <div
+                            class="w-full rounded-t-md transition-all duration-500"
+                            :style="{
+                                height: Math.max((dia.total / maxVentas) * 120, 4) + 'px',
+                                background: 'linear-gradient(to top, #3b82f6, #60a5fa)',
+                            }"
+                        />
+                        <span class="text-xs text-gray-500">{{ formatDate(dia.fecha) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donut chart: Productos por estado -->
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 class="mb-1 text-base font-semibold text-white">Productos por Estado</h3>
+                <p class="mb-6 text-sm text-gray-400">Activos vs Inactivos</p>
+
+                <div class="flex items-center justify-center gap-8">
+                    <svg width="120" height="120" viewBox="0 0 100 100">
+                        <!-- Background circle -->
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#374151"
+                            stroke-width="10"
+                        />
+                        <!-- Active segment -->
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#10b981"
+                            stroke-width="10"
+                            stroke-linecap="round"
+                            :stroke-dasharray="donutCircumference"
+                            :stroke-dashoffset="donutOffset"
+                            transform="rotate(-90 50 50)"
+                            class="transition-all duration-700"
+                        />
+                        <!-- Center text -->
+                        <text x="50" y="48" text-anchor="middle" class="text-lg font-bold" fill="#f3f4f6" font-size="14">
+                            {{ productosPorEstado.activos }}
+                        </text>
+                        <text x="50" y="62" text-anchor="middle" fill="#9ca3af" font-size="8">
+                            activos
+                        </text>
+                    </svg>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="h-3 w-3 rounded-full bg-emerald-500" />
+                            <div>
+                                <p class="text-sm text-gray-300">Activos</p>
+                                <p class="text-xs text-gray-500">{{ productosPorEstado.activos }} productos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="h-3 w-3 rounded-full bg-gray-500" />
+                            <div>
+                                <p class="text-sm text-gray-300">Inactivos</p>
+                                <p class="text-xs text-gray-500">{{ productosPorEstado.inactivos }} productos</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

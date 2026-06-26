@@ -80,6 +80,7 @@ const columns = [
             :search="search"
             base-route="pos.sedes.index"
             search-placeholder="Buscar por nombre o código..."
+            :show-search-button="true"
         >
             <template #cell-activo="{ row }">
                 <BadgeActivo :activo="(row as unknown as Sede).activo" />
