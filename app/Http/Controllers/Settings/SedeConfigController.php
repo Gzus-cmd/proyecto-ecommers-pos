@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateSedeConfigRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
 
 class SedeConfigController extends Controller
 {
@@ -25,34 +26,32 @@ class SedeConfigController extends Controller
 
     public function update(UpdateSedeConfigRequest $request)
     {
-        $validated = $request->validated();
+        $data = $request->validated();
 
-        $this->setEnv('SEDE_NOMBRE', $validated['nombre']);
-        $this->setEnv('SEDE_CODIGO', $validated['codigo']);
-        $this->setEnv('SEDE_DIRECCION', $validated['direccion'] ?? '');
-        $this->setEnv('SEDE_TELEFONO', $validated['telefono'] ?? '');
+        $envContent = file_get_contents(base_path('.env'));
+
+        foreach ($data as $key => $value) {
+            $key = 'SEDE_' . strtoupper(Str::snake($key));
+
+            // Envolver en comillas si tiene espacios o caracteres especiales
+            if (preg_match('/\s/', $value) || preg_match('/[^a-zA-Z0-9_\.\-]/', $value)) {
+                $value = '"' . $value . '"';
+            }
+
+            // Reemplazar o agregar
+            if (Str::contains($envContent, $key . '=')) {
+                $envContent = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $envContent);
+            } else {
+                $envContent .= "\n{$key}={$value}";
+            }
+        }
+
+        file_put_contents(base_path('.env'), $envContent);
 
         // Re-cache config
         Artisan::call('config:cache');
 
         return redirect()->route('settings.sede.edit')
             ->with('success', 'Configuración de sede actualizada correctamente.');
-    }
-
-    private function setEnv(string $key, string $value): void
-    {
-        $path = app()->environmentFilePath();
-        $content = file_get_contents($path);
-
-        $escaped = preg_quote($value, '/');
-        $pattern = "/^{$key}=.*/m";
-
-        if (preg_match($pattern, $content)) {
-            $content = preg_replace($pattern, "{$key}={$value}", $content);
-        } else {
-            $content .= "\n{$key}={$value}";
-        }
-
-        file_put_contents($path, $content);
     }
 }
