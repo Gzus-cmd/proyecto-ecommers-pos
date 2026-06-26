@@ -19,6 +19,7 @@ return new class extends Migration
         Schema::dropIfExists('stock_local');
 
         // 3. Create v_stock_lotes view
+        DB::statement('DROP VIEW IF EXISTS v_stock_lotes');
         DB::statement("
             CREATE VIEW v_stock_lotes AS
             SELECT
