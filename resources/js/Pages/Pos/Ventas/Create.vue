@@ -120,9 +120,16 @@ function openProductModal() {
     showProductModal.value = true;
 }
 
-function lotesPorProducto(sku: string): LoteLocal[] {
+function lotesPorProducto(sku: string, excludeIdx?: number): LoteLocal[] {
+    const idsEnUso = form.detalles
+        .filter((_, i) => excludeIdx === undefined || i !== excludeIdx)
+        .map((d) => d.lote_local_id)
+        .filter(Boolean);
     return props.lotes.filter(
-        (l) => l.sku_producto === sku && (l as any).stock_actual > 0,
+        (l) =>
+            l.sku_producto === sku &&
+            (l as any).stock_actual > 0 &&
+            !idsEnUso.includes(l.id),
     );
 }
 
@@ -290,7 +297,7 @@ function submit() {
                                         >
                                             <option value="" disabled>Seleccionar lote</option>
                                             <option
-                                                v-for="l in lotesPorProducto(det.producto_sku)"
+                                                v-for="l in lotesPorProducto(det.producto_sku, i)"
                                                 :key="l.id"
                                                 :value="l.id"
                                             >

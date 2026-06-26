@@ -14,7 +14,11 @@ class StoreVentaFisicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cliente_id' => ['nullable', 'integer', 'exists:clientes,id'],
+            'cliente_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
+                if ($value && $value > 0 && !\App\Models\Cliente::where('id', $value)->exists()) {
+                    $fail('El cliente seleccionado no existe.');
+                }
+            }],
             'nuevo_cliente_dni' => ['nullable', 'string', 'size:8'],
             'metodo_pago_id' => ['required', 'integer', 'exists:metodos_pago,id'],
             'subtotal' => ['required', 'numeric', 'min:0'],
