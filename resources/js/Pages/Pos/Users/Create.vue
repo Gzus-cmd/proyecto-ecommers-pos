@@ -8,11 +8,16 @@ import Input from '@/Components/pos/ui/Input.vue';
 import Toggle from '@/Components/pos/ui/Toggle.vue';
 import { toast } from 'vue-sonner';
 
+const props = defineProps<{
+    roles: { id: number; name: string }[];
+}>();
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     activo: true,
+    role: '',
 });
 
 function submit() {
@@ -40,6 +45,13 @@ function submit() {
 
             <FormField label="Contraseña" required :error="form.errors.password">
                 <Input v-model="form.password" type="password" placeholder="Mínimo 8 caracteres" />
+            </FormField>
+
+            <FormField label="Rol" :error="form.errors.role">
+                <select v-model="form.role" class="block w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-sm text-white shadow-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="">Sin rol</option>
+                    <option v-for="role in roles" :key="role.id" :value="role.name">{{ role.name }}</option>
+                </select>
             </FormField>
 
             <FormField label="Estado">

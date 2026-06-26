@@ -39,6 +39,7 @@ export interface User {
     name: string;
     email: string;
     activo: boolean;
+    roles?: { id: number; name: string }[];
     created_at?: string;
 }
 

@@ -11,6 +11,7 @@ use App\Models\Sede;
 use App\Models\User;
 use App\Models\VentaFisica;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class PosDemoSeeder extends Seeder
 {
@@ -210,6 +211,16 @@ class PosDemoSeeder extends Seeder
                 'impuesto' => $impuesto,
                 'total' => $total,
             ]);
+        }
+
+        // 8. Roles
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $vendedorRole = Role::firstOrCreate(['name' => 'vendedor']);
+
+        $admin->assignRole($adminRole);
+
+        foreach ($empleados as $emp) {
+            $emp->assignRole($vendedorRole);
         }
     }
 }

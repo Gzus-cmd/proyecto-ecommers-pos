@@ -7,6 +7,7 @@ use App\Http\Requests\Pos\StoreUserRequest;
 use App\Http\Requests\Pos\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -14,6 +15,7 @@ class UserController extends Controller
     {
         $search = $request->get('search');
         $users = User::query()
+            ->with('roles')
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
@@ -29,12 +31,18 @@ class UserController extends Controller
 
     public function create()
     {
-        return inertia('Pos/Users/Create');
+        return inertia('Pos/Users/Create', [
+            'roles' => Role::all(['id', 'name']),
+        ]);
     }
 
     public function store(StoreUserRequest $request)
     {
-        User::create($request->validated());
+        $user = User::create($request->validated());
+
+        if ($request->filled('role')) {
+            $user->assignRole($request->role);
+        }
 
         return redirect()->route('pos.users.index')
             ->with('success', 'Usuario creado correctamente.');
@@ -42,8 +50,11 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $user->load('roles');
+
         return inertia('Pos/Users/Edit', [
             'user' => $user,
+            'roles' => Role::all(['id', 'name']),
         ]);
     }
 
@@ -56,6 +67,10 @@ class UserController extends Controller
         }
 
         $user->update($data);
+
+        if ($request->filled('role')) {
+            $user->syncRoles([$request->role]);
+        }
 
         return redirect()->route('pos.users.index')
             ->with('success', 'Usuario actualizado correctamente.');

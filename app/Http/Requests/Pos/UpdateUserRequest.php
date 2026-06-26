@@ -25,6 +25,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'password' => ['nullable', 'string', 'min:8'],
             'activo' => ['boolean'],
+            'role' => ['nullable', 'string', 'exists:roles,name'],
         ];
     }
 

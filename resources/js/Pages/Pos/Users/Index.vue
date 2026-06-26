@@ -47,6 +47,7 @@ onMounted(() => showFlash());
 const columns = [
     { key: 'name', label: 'Nombre' },
     { key: 'email', label: 'Email' },
+    { key: 'roles', label: 'Roles' },
     { key: 'activo', label: 'Estado' },
     { key: 'created_at', label: 'Creado' },
 ];
@@ -83,6 +84,9 @@ const columns = [
         >
             <template #cell-activo="{ row }">
                 <BadgeActivo :activo="(row as unknown as User).activo" />
+            </template>
+            <template #cell-roles="{ row }">
+                <span>{{ ((row as unknown as User).roles ?? []).map(r => r.name).join(', ') || '—' }}</span>
             </template>
             <template #cell-created_at="{ row }">
                 <span>{{ new Date((row as unknown as User).created_at ?? '').toLocaleDateString() }}</span>
