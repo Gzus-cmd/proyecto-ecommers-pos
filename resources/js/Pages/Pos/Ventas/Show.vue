@@ -30,7 +30,10 @@ defineProps<{
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Cliente</span>
-                        <span class="text-white">{{ venta.cliente ? `${venta.cliente.nombres || ''} ${venta.cliente.apellidos || ''}`.trim() || venta.cliente.dni : '-' }}</span>
+                        <div class="text-right">
+                            <span class="text-white">{{ venta.cliente ? `${venta.cliente.nombres || ''} ${venta.cliente.apellidos || ''}`.trim() || '—' : '-' }}</span>
+                            <p v-if="venta.cliente?.dni" class="text-xs text-gray-400">DNI: {{ venta.cliente.dni }}</p>
+                        </div>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Método de Pago</span>

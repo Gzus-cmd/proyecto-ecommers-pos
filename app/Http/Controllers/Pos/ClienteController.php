@@ -48,7 +48,11 @@ class ClienteController extends Controller
 
     public function store(StoreClienteRequest $request)
     {
-        Cliente::create($request->validated());
+        $cliente = Cliente::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json($cliente, 201);
+        }
 
         return redirect()->route('pos.clientes.index')
             ->with('success', 'Cliente creado correctamente.');

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -10,6 +10,8 @@ import type { LoteLocal } from '@/types';
 defineProps<{
     lote: LoteLocal;
 }>();
+
+const isAdmin = (usePage().props.auth as any)?.roles?.includes('admin');
 
 function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'warning' | 'success' } {
     const hoy = new Date();
@@ -38,6 +40,7 @@ function formatDate(date: string): string {
         >
             <template #actions>
                 <Link
+                    v-if="isAdmin"
                     :href="route('pos.lotes.edit', lote.id)"
                     class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
                 >

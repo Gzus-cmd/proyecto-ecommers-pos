@@ -44,16 +44,16 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
         Route::post('stock/{lote}/retirar', [LoteLocalController::class, 'retirar'])->name('stock.retirar');
     });
 
-    // Clientes — solo admin puede modificar
+    // Clientes — solo admin puede modificar (CRUD), pero store y search están abiertos para flujo de ventas
     Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
     Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
+    Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
+    Route::get('clientes/search-by-dni', [ClienteController::class, 'searchByDni'])->name('clientes.search-by-dni');
     Route::middleware('role:admin')->group(function () {
         Route::get('clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
-        Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
         Route::get('clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');
         Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
         Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
-        Route::get('clientes/search-by-dni', [ClienteController::class, 'searchByDni'])->name('clientes.search-by-dni');
     });
 
     // Métodos de Pago — solo admin

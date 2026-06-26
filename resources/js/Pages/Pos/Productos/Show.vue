@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -11,6 +11,8 @@ import type { ProductoLocal } from '@/types';
 defineProps<{
     producto: ProductoLocal;
 }>();
+
+const isAdmin = (usePage().props.auth as any)?.roles?.includes('admin');
 </script>
 
 <template>
@@ -22,6 +24,7 @@ defineProps<{
         >
             <template #actions>
                 <Link
+                    v-if="isAdmin"
                     :href="route('pos.productos.edit', producto.sku)"
                     class="inline-flex items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 px-4 py-2 text-sm font-medium transition-colors"
                 >

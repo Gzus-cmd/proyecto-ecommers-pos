@@ -38,7 +38,10 @@ Muestra:
 
 ## 5. Ventas
 **Nueva Venta**: menú Ventas → Nueva Venta
-1. Seleccionar cliente (opcional, buscar por DNI)
+1. **Seleccionar cliente** (opcional):
+   - Escribir DNI o nombre en el campo de búsqueda para filtrar clientes existentes
+   - Seleccionar un cliente del listado, o dejar "— Sin Cliente —" para ventas anónimas
+   - Si el cliente no existe, presionar **"+ Nuevo"**, ingresar solo el DNI y presionar **"Crear y Seleccionar"** (el cliente se registra al instante y queda seleccionado)
 2. Seleccionar método de pago
 3. Agregar productos: seleccionar producto + lote + cantidad
 4. Confirmar venta
@@ -47,10 +50,19 @@ Muestra:
 Menú Stock → tabla con todos los lotes y su stock actual
 - Botón "Retirar Stock" para lotes vencidos (pone cantidad a 0)
 
-## 7. Usuarios
+## 7. Usuarios y Roles
 Menú Gestión → Usuarios
 - Crear/editar usuarios del sistema
-- Asignar rol: admin (acceso total) o vendedor (ventas)
+- Asignar rol al crear o editar un usuario
+
+### Roles disponibles
+
+| Rol | ¿Qué puede hacer? |
+|-----|-------------------|
+| **admin** | Acceso completo. Puede crear, editar y eliminar productos, lotes, clientes, métodos de pago y usuarios. También puede realizar ventas. |
+| **vendedor** | Solo ventas y consultas. Puede crear ventas, ver productos, lotes, clientes y stock. **No puede** crear, editar ni eliminar productos, lotes, clientes ni usuarios. |
+
+> 💡 Los botones de "Editar" y opciones de modificación se ocultan automáticamente para usuarios con rol **vendedor**.
 
 ## 8. Clientes
 Menú Gestión → Clientes

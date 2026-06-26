@@ -114,12 +114,27 @@ npm run build
 ./vendor/bin/sail artisan config:cache
 ./vendor/bin/sail artisan route:cache
 
-# Gestión roles
-./vendor/bin/sail artisan permission:create-role admin
-./vendor/bin/sail artisan permission:create-role vendedor
+# Ver sección 10 para gestión avanzada de roles y permisos
 ```
 
-## 10. Configuración de Sede
+## 10. Roles y Permisos
+
+El sistema usa **spatie/laravel-permission** con dos roles:
+
+| Rol | Acceso |
+|-----|--------|
+| **admin** | Acceso completo: CRUD de productos, lotes, clientes, métodos de pago, usuarios. Puede ver dashboard y ventas. |
+| **vendedor** | Solo operaciones de venta: crear ventas, buscar productos/lotes, ver dashboard. No puede crear/editar/eliminar productos, lotes, clientes, métodos de pago ni usuarios. |
+
+### Middleware por ruta
+
+Las rutas de modificación (create, store, edit, update, destroy) están protegidas con `middleware('role:admin')` en `routes/pos.php`. Las rutas de solo lectura (index, show) y las rutas de ventas (create, store) están abiertas para cualquier usuario autenticado.
+
+### Frontend
+
+En los componentes Vue se usa `usePage().props.auth.roles` para condicionalmente mostrar/ocultar botones de edición (ver `v-if="isAdmin"` en Show pages).
+
+## 11. Configuración de Sede
 Variables en `.env`:
 ```
 SEDE_NOMBRE="Nombre de Farmacia"
@@ -127,4 +142,16 @@ SEDE_CODIGO=SED-001
 SEDE_DIRECCION="Dirección completa"
 SEDE_TELEFONO=999888777
 ```
-**Importante**: valores con espacios deben ir ENTRE COMILLAS DOBLES.
+**Importante**: valores con espacios deben ir ENTRE COMILLAS DOBLLES.
+
+## 12. Comandos de permisos
+```bash
+# Crear roles
+./vendor/bin/sail artisan permission:create-role admin
+./vendor/bin/sail artisan permission:create-role vendedor
+
+# Asignar rol a un usuario (vía tinker)
+./vendor/bin/sail artisan tinker
+> $user = User::find(1);
+> $user->assignRole('admin');
+```
