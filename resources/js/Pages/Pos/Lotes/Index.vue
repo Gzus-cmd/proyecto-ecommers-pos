@@ -47,7 +47,8 @@ onMounted(() => showFlash());
 function getEstadoDias(fecha: string): { label: string; clase: string; dias: number } {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
-    const venc = new Date(fecha + 'T00:00:00');
+    const venc = new Date(fecha);
+    venc.setHours(0, 0, 0, 0);
     const diff = Math.floor((venc.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
     if (diff <= 0) return { label: 'Vencido', clase: 'text-red-400 bg-red-900/20 border-red-800/50', dias: diff };
     if (diff <= 90) return { label: 'Por Vencer', clase: 'text-yellow-400 bg-yellow-900/20 border-yellow-800/50', dias: diff };
@@ -56,7 +57,8 @@ function getEstadoDias(fecha: string): { label: string; clase: string; dias: num
 
 function formatDate(date: string): string {
     if (!date) return '-';
-    return new Date(date + 'T00:00:00').toLocaleDateString('es-PE');
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('es-PE');
 }
 
 const columns = [

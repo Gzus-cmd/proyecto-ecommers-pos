@@ -112,17 +112,6 @@ function productoLabel(sku: string): string {
         </div>
 
         <div class="mb-4">
-            <button
-                class="inline-flex items-center gap-2 rounded-lg border border-dashed border-gray-700 px-4 py-2 text-sm font-medium text-gray-400 transition-colors hover:border-gray-500 hover:text-gray-200"
-                @click="agregarFila"
-            >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Agregar Producto
-            </button>
-        </div>
-
         <div v-if="lotes.length === 0" class="rounded-xl border border-dashed border-gray-800 py-16 text-center">
             <p class="text-gray-500">Agrega al menos un producto para crear lotes.</p>
         </div>

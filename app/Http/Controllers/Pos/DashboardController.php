@@ -97,7 +97,7 @@ class DashboardController extends Controller
         $topProductos = DetalleVenta::query()
             ->join('ventas_fisicas', 'detalle_ventas.venta_id', '=', 'ventas_fisicas.id')
             ->whereBetween('ventas_fisicas.created_at', [$inicio, $fin])
-            ->selectRaw('producto_sku, SUM(cantidad) as total_vendido, SUM(subtotal) as total_monto')
+            ->selectRaw('producto_sku, SUM(cantidad) as total_vendido, SUM(detalle_ventas.subtotal) as total_monto')
             ->groupBy('producto_sku')
             ->orderByDesc('total_vendido')
             ->limit(10)
