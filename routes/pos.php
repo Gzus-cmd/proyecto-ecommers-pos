@@ -25,6 +25,7 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('ventas', [VentaFisicaController::class, 'index'])->name('ventas.index');
     Route::get('ventas/create', [VentaFisicaController::class, 'create'])->name('ventas.create');
     Route::post('ventas', [VentaFisicaController::class, 'store'])->name('ventas.store');
+    Route::get('ventas/exportar', [VentaFisicaController::class, 'exportar'])->name('ventas.exportar');
     Route::get('ventas/{venta}', [VentaFisicaController::class, 'show'])->name('ventas.show');
     Route::get('stock', [StockLocalController::class, 'index'])->name('stock.index');
     Route::get('detalle-ventas', [DetalleVentaController::class, 'index'])->name('detalle-ventas.index');
@@ -59,7 +60,6 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
     Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
     Route::get('clientes/search-by-dni', [ClienteController::class, 'searchByDni'])->name('clientes.search-by-dni');
-    Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     Route::middleware('role:admin')->group(function () {
         Route::get('clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
         Route::get('clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');

@@ -11,7 +11,7 @@ class DetalleVentaController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $detalles = DetalleVenta::with(['venta.sede', 'producto'])
+        $detalles = DetalleVenta::with(['venta', 'producto'])
             ->when($search, function ($query, $search) {
                 $query->whereHas('producto', function ($q) use ($search) {
                     $q->where('nombre_comercial', 'like', "%{$search}%")

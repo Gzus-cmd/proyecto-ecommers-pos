@@ -18,11 +18,9 @@ class VentaFisicaController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $ventas = VentaFisica::with(['sede', 'user', 'metodoPago'])
+        $ventas = VentaFisica::with(['user', 'metodoPago'])
             ->when($search, function ($query, $search) {
-                $query->whereHas('sede', function ($q) use ($search) {
-                    $q->where('nombre', 'like', "%{$search}%");
-                })->orWhereHas('user', function ($q) use ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 });
@@ -103,9 +101,32 @@ class VentaFisicaController extends Controller
             ->with('success', 'Venta registrada correctamente.');
     }
 
+    public function exportar(Request $request)
+    {
+        $ventas = VentaFisica::with(['cliente', 'user', 'detalles.producto'])
+            ->when($request->filled('fecha_inicio'), fn($q) => $q->whereDate('created_at', '>=', $request->fecha_inicio))
+            ->when($request->filled('fecha_fin'), fn($q) => $q->whereDate('created_at', '<=', $request->fecha_fin))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $csv = "ID,Venta,Fecha,Cliente,Usuario,Subtotal,Impuesto,Total,Productos\n";
+        foreach ($ventas as $v) {
+            $csv .= "{$v->id},Venta #{$v->id}," . $v->created_at->format('Y-m-d') . ",";
+            $csv .= "{$v->cliente?->dni} {$v->cliente?->nombres} {$v->cliente?->apellidos},";
+            $csv .= "{$v->user->name},";
+            $csv .= number_format($v->subtotal, 2) . "," . number_format($v->impuesto, 2) . "," . number_format($v->total, 2) . ",";
+            $csv .= "\"{$v->detalles->map(fn($d) => $d->producto?->nombre_comercial . ' x' . $d->cantidad)->implode(', ')}\"";
+            $csv .= "\n";
+        }
+
+        return response()->streamDownload(function () use ($csv) {
+            echo $csv;
+        }, 'ventas-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv']);
+    }
+
     public function show(VentaFisica $venta)
     {
-        $venta->load(['sede', 'user', 'metodoPago', 'detalles.producto', 'cliente']);
+        $venta->load(['user', 'metodoPago', 'detalles.producto', 'cliente']);
 
         return inertia('Pos/Ventas/Show', [
             'venta' => $venta,

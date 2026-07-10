@@ -53,7 +53,6 @@ const ROUTES: Record<string, string> = {
     'pos.clientes.index': '/pos/clientes',
     'pos.clientes.create': '/pos/clientes/create',
     'pos.clientes.store': '/pos/clientes',
-    'pos.clientes.show': '/pos/clientes/{cliente}',
     'pos.clientes.edit': '/pos/clientes/{cliente}/edit',
     'pos.clientes.update': '/pos/clientes/{cliente}',
     'pos.clientes.destroy': '/pos/clientes/{cliente}',
@@ -69,6 +68,7 @@ const ROUTES: Record<string, string> = {
     'pos.ventas.create': '/pos/ventas/create',
     'pos.ventas.store': '/pos/ventas',
     'pos.ventas.show': '/pos/ventas/{venta}',
+    'pos.ventas.exportar': '/pos/ventas/exportar',
 
     // ── Detalle Ventas ─────────────────────────────────────
     'pos.detalle-ventas.index': '/pos/detalle-ventas',

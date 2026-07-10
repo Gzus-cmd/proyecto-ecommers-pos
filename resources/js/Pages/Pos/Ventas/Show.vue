@@ -21,10 +21,6 @@ defineProps<{
             <Card title="Información General">
                 <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-gray-400">Sede</span>
-                        <span class="text-white">{{ venta.sede?.nombre || '-' }}</span>
-                    </div>
-                    <div class="flex justify-between">
                         <span class="text-gray-400">Usuario</span>
                         <span class="text-white">{{ venta.user?.name || '-' }}</span>
                     </div>

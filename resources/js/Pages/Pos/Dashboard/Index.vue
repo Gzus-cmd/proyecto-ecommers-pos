@@ -24,7 +24,6 @@ interface StockBajoItem {
     sku: string;
     cantidad: number;
     lote: string;
-    sede: string;
 }
 
 interface TopProducto {
@@ -49,8 +48,8 @@ const props = withDefaults(defineProps<{
     topProductos?: TopProducto[];
     fechaInicio?: string;
     fechaFin?: string;
-    productosVendidos?: number;
-}>(), {
+}>(),
+{
     totalProductos: 0,
     ventasHoy: 0,
     ventasHoyMonto: 0,
@@ -65,7 +64,6 @@ const props = withDefaults(defineProps<{
     topProductos: () => [],
     fechaInicio: '',
     fechaFin: '',
-    productosVendidos: 0,
 });
 
 const showVencerModal = ref(false);
@@ -120,12 +118,6 @@ const cards = computed(() => [
         color: 'emerald',
     },
     {
-        label: 'Productos Vendidos',
-        value: props.productosVendidos ?? 0,
-        icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
-        color: 'purple',
-    },
-    {
         label: 'Productos por Vencer',
         value: props.productosPorVencerCount ?? 0,
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
@@ -153,6 +145,43 @@ const ventasData = computed(() => props.ventasPorDia ?? []);
 const maxVentas = computed(() => {
     const values = ventasData.value.map((d) => d.total);
     return values.length > 0 ? Math.max(...values) : 1;
+});
+const maxMonto = computed(() => {
+    const values = ventasData.value.map((d) => d.monto);
+    return values.length > 0 ? Math.max(...values) : 1;
+});
+const chartWidth = computed(() => Math.max(ventasData.value.length * 70, 520));
+const chartHeight = 260;
+const padding = { top: 30, right: 20, bottom: 40, left: 50 };
+const plotW = computed(() => chartWidth.value - padding.left - padding.right);
+const plotH = computed(() => chartHeight - padding.top - padding.bottom);
+
+function xPos(i: number): number {
+    return ventasData.value.length > 1
+        ? padding.left + (i / (ventasData.value.length - 1)) * plotW.value
+        : padding.left + plotW.value / 2;
+}
+
+function yPos(total: number): number {
+    return padding.top + plotH.value - (total / (maxVentas.value || 1)) * plotH.value;
+}
+
+function linePoints(): string {
+    return ventasData.value
+        .map((d, i) => `${xPos(i)},${yPos(d.total)}`)
+        .join(' ');
+}
+
+// Generar etiquetas para el eje Y (valores representativos)
+const yLabels = computed(() => {
+    const max = maxVentas.value;
+    const steps = 5;
+    const labels: { value: number; y: number }[] = [];
+    for (let i = 0; i <= steps; i++) {
+        const val = Math.round((max / steps) * (steps - i));
+        labels.push({ value: val, y: padding.top + (i / steps) * plotH.value });
+    }
+    return labels;
 });
 
 function formatDate(fecha: string): string {
@@ -192,8 +221,8 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                 v-for="card in cards"
                 :key="card.label"
                 :class="[
-                    'group relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors',
-                    card.clickable ? 'cursor-pointer hover:bg-gray-800/50' : '',
+                    'group relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-6 transition-all duration-200 card-shadow',
+                    card.clickable ? 'cursor-pointer hover:bg-gray-800/50 hover:border-gray-700 hover:-translate-y-0.5' : '',
                 ]"
                 @click="cardClicked(card)"
             >
@@ -224,7 +253,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
         <!-- Charts row -->
         <div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
             <!-- Line chart: Ventas por día -->
-            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
                 <h3 class="mb-1 text-base font-semibold text-white">Ventas por Día</h3>
                 <p class="mb-6 text-sm text-gray-400">
                     {{ fechaInicio ? formatFechaDDMM(fechaInicio) : '' }} — {{ fechaFin ? formatFechaDDMM(fechaFin) : '' }}
@@ -232,78 +261,141 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
 
                 <div class="overflow-x-auto custom-scrollbar pb-2">
                     <svg
-                        :viewBox="`0 0 ${Math.max(ventasData.length * 60, 480)} 240`"
+                        :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
                         class="w-full"
-                        style="min-height: 240px; min-width: 480px"
+                        :style="{ minHeight: chartHeight + 'px', minWidth: chartWidth + 'px' }"
                     >
-                        <!-- Eje Y — líneas de fondo -->
-                        <template v-for="n in 5" :key="'g' + n">
+                        <!-- Eje Y — líneas de fondo y etiquetas -->
+                        <template v-for="(label, i) in yLabels" :key="'y-' + i">
                             <line
-                                :x1="40"
-                                :y1="20 + (n - 1) * 42.5"
-                                :x2="Math.max(ventasData.length * 60, 480) - 10"
-                                :y2="20 + (n - 1) * 42.5"
+                                :x1="padding.left"
+                                :y1="label.y"
+                                :x2="chartWidth - padding.right"
+                                :y2="label.y"
                                 stroke="#374151"
                                 stroke-width="1"
+                                stroke-dasharray="4,4"
                             />
                             <text
-                                :x="35"
-                                :y="24 + (n - 1) * 42.5"
+                                :x="padding.left - 8"
+                                :y="label.y + 4"
                                 text-anchor="end"
                                 fill="#9ca3af"
-                                font-size="10"
+                                font-size="11"
+                                font-weight="500"
                             >
-                                {{ Math.round((maxVentas / 4) * (4 - (n - 1))) }}
+                                {{ label.value }}
                             </text>
                         </template>
 
-                        <!-- Línea poligonal de ventas -->
-                        <polyline
+                        <!-- Gradiente para el área bajo la línea -->
+                        <defs>
+                            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25" />
+                                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Área bajo la línea -->
+                        <polygon
                             v-if="ventasData.length > 0"
-                            :points="ventasData.map((d, i) =>
-                                `${40 + i * 60 + 20},${190 - (d.total / (maxVentas || 1)) * 150}`
-                            ).join(' ')"
-                            fill="none"
-                            stroke="#3b82f6"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            :points="
+                                ventasData.map((d, i) => `${xPos(i)},${yPos(d.total)}`).join(' ') +
+                                ' ' +
+                                xPos(ventasData.length - 1) + ',' + (padding.top + plotH) + ' ' +
+                                padding.left + ',' + (padding.top + plotH)
+                            "
+                            fill="url(#lineGrad)"
                         />
 
-                        <!-- Puntos con hover -->
-                        <g v-for="(d, i) in ventasData" :key="'dot' + i">
+                        <!-- Línea poligonal con animación -->
+                        <polyline
+                            v-if="ventasData.length > 0"
+                            :points="linePoints()"
+                            fill="none"
+                            stroke="#3b82f6"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="chart-line"
+                        />
+
+                        <!-- Puntos con tooltips -->
+                        <g v-for="(d, i) in ventasData" :key="'dot-' + i">
+                            <!-- Círculo exterior de hover (más grande) -->
                             <circle
-                                :cx="40 + i * 60 + 20"
-                                :cy="190 - (d.total / (maxVentas || 1)) * 150"
-                                r="4"
-                                fill="#3b82f6"
-                                stroke="#1e3a5f"
-                                stroke-width="2"
+                                :cx="xPos(i)"
+                                :cy="yPos(d.total)"
+                                r="12"
+                                fill="transparent"
                                 class="cursor-pointer"
+                            />
+                            <!-- Círculo visible -->
+                            <circle
+                                :cx="xPos(i)"
+                                :cy="yPos(d.total)"
+                                :r="d.total > 0 ? 5 : 3"
+                                :fill="d.total > 0 ? '#3b82f6' : '#4b5563'"
+                                :stroke="d.total > 0 ? '#1e40af' : '#374151'"
+                                :stroke-width="d.total > 0 ? 2.5 : 1.5"
+                                class="cursor-pointer chart-dot"
                             >
-                                <title>{{ formatFechaDDMM(d.fecha) }}: {{ d.total }} ventas (S/ {{ d.monto.toFixed(2) }})</title>
+                                <title>
+                                    {{ formatFechaDDMM(d.fecha) }} | {{ d.total }} ventas | S/ {{ Number(d.monto).toFixed(2) }}
+                                </title>
                             </circle>
+                            <!-- Tooltip al hover (usando SVG title + grupo visible) -->
+                            <g
+                                class="chart-tooltip"
+                                style="pointer-events: none;"
+                            >
+                                <rect
+                                    :x="xPos(i) - 45"
+                                    :y="yPos(d.total) - 32"
+                                    width="90"
+                                    height="24"
+                                    rx="4"
+                                    fill="#1f2937"
+                                    stroke="#374151"
+                                    stroke-width="1"
+                                    opacity="0"
+                                />
+                                <text
+                                    :x="xPos(i)"
+                                    :y="yPos(d.total) - 16"
+                                    text-anchor="middle"
+                                    fill="#e5e7eb"
+                                    font-size="10"
+                                    font-weight="600"
+                                    opacity="0"
+                                >
+                                    S/ {{ Number(d.monto).toFixed(2) }}
+                                </text>
+                            </g>
+                            <!-- Etiqueta del valor sobre el punto -->
                             <text
                                 v-if="d.total > 0"
-                                :x="40 + i * 60 + 20"
-                                :y="190 - (d.total / (maxVentas || 1)) * 150 - 8"
+                                :x="xPos(i)"
+                                :y="yPos(d.total) - 12"
                                 text-anchor="middle"
                                 fill="#d1d5db"
-                                font-size="9"
+                                font-size="10"
+                                font-weight="600"
                             >
                                 {{ d.total }}
                             </text>
                         </g>
 
-                        <!-- Eje X — fechas -->
+                        <!-- Eje X — fechas (más legibles) -->
                         <text
                             v-for="(d, i) in ventasData"
-                            :key="'x' + i"
-                            :x="40 + i * 60 + 20"
-                            y="215"
+                            :key="'x-' + i"
+                            :x="xPos(i)"
+                            :y="chartHeight - 8"
                             text-anchor="middle"
                             fill="#9ca3af"
-                            font-size="9"
+                            font-size="10"
+                            font-weight="500"
                         >
                             {{ formatDate(d.fecha) }}
                         </text>
@@ -312,7 +404,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
             </div>
 
             <!-- Donut chart: Productos por estado -->
-            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
                 <h3 class="mb-1 text-base font-semibold text-white">Productos por Estado</h3>
                 <p class="mb-6 text-sm text-gray-400">Activos vs Inactivos</p>
 
@@ -371,7 +463,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
         </div>
 
         <!-- Top Productos + Filtro de fechas -->
-        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
             <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h3 class="text-base font-semibold text-white">Top Productos Más Vendidos</h3>
@@ -478,8 +570,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                         <th class="pb-2 pr-4 font-medium">Producto</th>
                                         <th class="pb-2 pr-4 font-medium">SKU</th>
                                         <th class="pb-2 pr-4 font-medium">Cantidad</th>
-                                        <th class="pb-2 pr-4 font-medium">Lote</th>
-                                        <th class="pb-2 font-medium">Sede</th>
+                                        <th class="pb-2 font-medium">Lote</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -493,8 +584,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                         <td class="py-2 pr-4">
                                             <span class="font-medium text-red-400">{{ item.cantidad }}</span>
                                         </td>
-                                        <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
-                                        <td class="py-2 text-gray-400">{{ item.sede }}</td>
+                                        <td class="py-2 text-gray-400">{{ item.lote }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -511,8 +601,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                         <th class="pb-2 pr-4 font-medium">Producto</th>
                                         <th class="pb-2 pr-4 font-medium">SKU</th>
                                         <th class="pb-2 pr-4 font-medium">Cantidad</th>
-                                        <th class="pb-2 pr-4 font-medium">Lote</th>
-                                        <th class="pb-2 font-medium">Sede</th>
+                                        <th class="pb-2 font-medium">Lote</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -526,8 +615,7 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
                                         <td class="py-2 pr-4">
                                             <span class="font-medium text-amber-400">{{ item.cantidad }}</span>
                                         </td>
-                                        <td class="py-2 pr-4 text-gray-400">{{ item.lote }}</td>
-                                        <td class="py-2 text-gray-400">{{ item.sede }}</td>
+                                        <td class="py-2 text-gray-400">{{ item.lote }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -662,5 +750,43 @@ function cardClicked(card: ReturnType<typeof cards.value>[0]) {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #4b5563;
+}
+
+/* Animación de dibujado de línea */
+.chart-line {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: draw-line 1.5s ease-out forwards;
+}
+
+@keyframes draw-line {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Puntos con efecto pulse */
+.chart-dot {
+    transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.chart-dot:hover {
+    filter: brightness(1.3);
+}
+
+/* Tooltip hover para cada punto */
+g:hover > .chart-tooltip rect,
+g:hover > .chart-tooltip text {
+    opacity: 1 !important;
+    transition: opacity 0.15s ease;
+}
+
+/* Mejora general de cards y sombras */
+.card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
+.chart-area {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 </style>

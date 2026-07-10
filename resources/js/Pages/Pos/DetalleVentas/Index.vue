@@ -11,7 +11,6 @@ defineProps<{
 
 const columns = [
     { key: 'venta_id', label: 'Venta #' },
-    { key: 'sede', label: 'Sede' },
     { key: 'producto', label: 'Producto' },
     { key: 'producto_sku', label: 'SKU' },
     { key: 'cantidad', label: 'Cantidad' },
@@ -44,9 +43,6 @@ const columns = [
                 >
                     #{{ (row as unknown as DetalleVenta).venta_id }}
                 </a>
-            </template>
-            <template #cell-sede="{ row }">
-                <span>{{ (row as unknown as DetalleVenta).venta?.sede?.nombre || '-' }}</span>
             </template>
             <template #cell-producto="{ row }">
                 <span>{{ (row as unknown as DetalleVenta).producto?.nombre_comercial || '-' }}</span>

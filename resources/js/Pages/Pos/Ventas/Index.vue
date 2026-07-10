@@ -13,7 +13,6 @@ defineProps<{
 
 const columns = [
     { key: 'id', label: 'N° Venta' },
-    { key: 'sede', label: 'Sede' },
     { key: 'user', label: 'Usuario' },
     { key: 'fecha_venta', label: 'Fecha' },
     { key: 'total', label: 'Total' },
@@ -24,6 +23,15 @@ const columns = [
     <AppPageShell>
         <AppPageHeader title="Ventas" description="Historial de ventas realizadas">
             <template #actions>
+                <a
+                    :href="route('pos.ventas.exportar')"
+                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 shadow-sm transition-colors hover:bg-gray-700"
+                >
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Exportar CSV
+                </a>
                 <Link
                     :href="route('pos.ventas.create')"
                     class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -46,12 +54,9 @@ const columns = [
             :to="ventas.to"
             :search="search"
             base-route="pos.ventas.index"
-            search-placeholder="Buscar por sede o usuario..."
+            search-placeholder="Buscar por usuario..."
             :show-search-button="true"
         >
-            <template #cell-sede="{ row }">
-                <span>{{ (row as unknown as VentaFisica).sede?.nombre || '-' }}</span>
-            </template>
             <template #cell-user="{ row }">
                 <span>{{ (row as unknown as VentaFisica).user?.name || '-' }}</span>
             </template>

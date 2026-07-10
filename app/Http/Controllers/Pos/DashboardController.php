@@ -39,7 +39,6 @@ class DashboardController extends Controller
                     'sku' => $lote->sku_producto,
                     'cantidad' => $stockActual,
                     'lote' => $lote->numero_lote,
-                    'sede' => '-',
                 ]);
             } elseif ($stockActual > 0 && $stockActual < 10) {
                 $stockBajo++;
@@ -48,7 +47,6 @@ class DashboardController extends Controller
                     'sku' => $lote->sku_producto,
                     'cantidad' => $stockActual,
                     'lote' => $lote->numero_lote,
-                    'sede' => '-',
                 ]);
             }
         }
@@ -114,9 +112,6 @@ class DashboardController extends Controller
                 ];
             });
 
-        // ── Productos Vendidos (total histórico de unidades vendidas) ──
-        $productosVendidos = DetalleVenta::sum('cantidad');
-
         // ── Productos por estado ──────────────────────────────────────
         $activos = ProductoLocal::where('activo', true)->count();
         $inactivos = ProductoLocal::where('activo', false)->count();
@@ -139,7 +134,6 @@ class DashboardController extends Controller
             'topProductos'         => $topProductos,
             'fechaInicio'          => $fechaInicio,
             'fechaFin'             => $fechaFin,
-            'productosVendidos'    => $productosVendidos,
         ]);
     }
 }
