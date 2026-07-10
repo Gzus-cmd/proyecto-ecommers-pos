@@ -62,6 +62,13 @@ const formValido = computed(() => {
     return !invalido;
 });
 
+const productosRequierenReceta = computed(() =>
+    form.detalles.some((d) => {
+        const p = props.productos.find((p) => p.sku === d.producto_sku);
+        return p?.requiere_receta ?? false;
+    }),
+);
+
 // Quick client creation
 const showNuevoClienteForm = ref(false);
 const nuevoClienteDni = ref('');
@@ -227,6 +234,23 @@ function submit() {
         return;
     }
 
+    // Validar receta médica: si hay productos con requiere_receta, el cliente debe tener DNI
+    if (productosRequierenReceta.value) {
+        const clienteId = form.cliente_id;
+        if (!clienteId) {
+            toast.error('Productos con receta médica requieren registrar DNI del cliente.');
+            return;
+        }
+        if (Number(clienteId) > 0) {
+            const cliente = props.clientes.find((c) => c.id === Number(clienteId));
+            if (!cliente?.dni) {
+                toast.error('El cliente seleccionado no tiene DNI registrado. Registre un cliente con DNI.');
+                return;
+            }
+        }
+        // Si es cliente nuevo (nuevo_cliente_dni), ya tiene DNI por definición
+    }
+
     const sinLote = form.detalles.find((d) => !d.lote_local_id);
     if (sinLote) {
         toast.error('Debe seleccionar un lote para cada producto.');
@@ -275,7 +299,15 @@ function submit() {
                             No hay productos agregados. Presiona "Agregar Producto" para empezar.
                         </div>
 
-                        <table v-else class="min-w-full divide-y divide-gray-800">
+                        <template v-else>
+                            <div
+                                v-if="productosRequierenReceta"
+                                class="mx-4 mt-4 rounded-lg border border-amber-500/30 bg-amber-900/10 px-4 py-3 text-sm text-amber-400"
+                            >
+                                ⚠️ Productos con receta médica detectados. Debe registrar un cliente con DNI.
+                            </div>
+
+                            <table class="min-w-full divide-y divide-gray-800">
                             <thead>
                                 <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-400">
                                     <th class="px-4 py-3">Producto</th>
@@ -337,6 +369,7 @@ function submit() {
                                 </tr>
                             </tbody>
                         </table>
+                    </template>
                     </Card>
                 </div>
 
