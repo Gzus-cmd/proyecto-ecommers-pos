@@ -125,11 +125,13 @@ function lotesPorProducto(sku: string, excludeIdx?: number): LoteLocal[] {
         .filter((_, i) => excludeIdx === undefined || i !== excludeIdx)
         .map((d) => d.lote_local_id)
         .filter(Boolean);
+    const ahora = new Date();
     return props.lotes.filter(
         (l) =>
             l.sku_producto === sku &&
             (l as any).stock_actual > 0 &&
-            !idsEnUso.includes(l.id),
+            !idsEnUso.includes(l.id) &&
+            new Date(l.fecha_vencimiento) > ahora,
     );
 }
 
@@ -143,7 +145,7 @@ function selectProduct(sku: string) {
 
     const lotes = lotesPorProducto(sku);
     if (lotes.length === 0) {
-        toast.error('No hay lotes disponibles para este producto.');
+        toast.error('Producto sin lotes disponibles');
         return;
     }
 

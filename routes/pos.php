@@ -11,8 +11,16 @@ use App\Http\Controllers\Pos\VentaFisicaController;
 use App\Http\Controllers\Pos\DetalleVentaController;
 use App\Http\Controllers\Pos\UserController;
 
+/*
+|--------------------------------------------------------------------------
+| IMPORTANTE: Rutas literales (create, search-by-dni) SIEMPRE antes
+| que rutas con parámetros ({producto}, {lote}, {cliente}) para evitar
+| que Laravel matchee rutas incorrectamente.
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
-    // Dashboard y Ventas — ambos roles pueden ver
+    // ── Dashboard y Ventas — ambos roles pueden ver ──────────────────
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('ventas', [VentaFisicaController::class, 'index'])->name('ventas.index');
     Route::get('ventas/create', [VentaFisicaController::class, 'create'])->name('ventas.create');
@@ -21,9 +29,9 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('stock', [StockLocalController::class, 'index'])->name('stock.index');
     Route::get('detalle-ventas', [DetalleVentaController::class, 'index'])->name('detalle-ventas.index');
 
-    // Productos — ambos pueden VER, solo admin puede crear/editar/eliminar
+    // ── Productos — ambos roles pueden VER, solo admin crea/edita/elimina ──
+    // Rutas literales PRIMERO, show CON PARÁMETRO al final
     Route::get('productos', [ProductoLocalController::class, 'index'])->name('productos.index');
-    Route::get('productos/{producto}', [ProductoLocalController::class, 'show'])->name('productos.show');
     Route::middleware('role:admin')->group(function () {
         Route::get('productos/create', [ProductoLocalController::class, 'create'])->name('productos.create');
         Route::post('productos', [ProductoLocalController::class, 'store'])->name('productos.store');
@@ -31,10 +39,11 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
         Route::put('productos/{producto}', [ProductoLocalController::class, 'update'])->name('productos.update');
         Route::delete('productos/{producto}', [ProductoLocalController::class, 'destroy'])->name('productos.destroy');
     });
+    Route::get('productos/{producto}', [ProductoLocalController::class, 'show'])->name('productos.show');
 
-    // Lotes — solo admin puede modificar
+    // ── Lotes — ambos roles pueden VER, solo admin modifica ──
+    // Rutas literales PRIMERO, show CON PARÁMETRO al final
     Route::get('lotes', [LoteLocalController::class, 'index'])->name('lotes.index');
-    Route::get('lotes/{lote}', [LoteLocalController::class, 'show'])->name('lotes.show');
     Route::middleware('role:admin')->group(function () {
         Route::get('lotes/create', [LoteLocalController::class, 'create'])->name('lotes.create');
         Route::post('lotes', [LoteLocalController::class, 'store'])->name('lotes.store');
@@ -43,12 +52,14 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
         Route::delete('lotes/{lote}', [LoteLocalController::class, 'destroy'])->name('lotes.destroy');
         Route::post('stock/{lote}/retirar', [LoteLocalController::class, 'retirar'])->name('stock.retirar');
     });
+    Route::get('lotes/{lote}', [LoteLocalController::class, 'show'])->name('lotes.show');
 
-    // Clientes — solo admin puede modificar (CRUD), pero store y search están abiertos para flujo de ventas
+    // ── Clientes — store abierta para flujo de ventas ──
+    // search-by-dni ANTES que clientes/{cliente}
     Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
-    Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store');
     Route::get('clientes/search-by-dni', [ClienteController::class, 'searchByDni'])->name('clientes.search-by-dni');
+    Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     Route::middleware('role:admin')->group(function () {
         Route::get('clientes/create', [ClienteController::class, 'create'])->name('clientes.create');
         Route::get('clientes/{cliente}/edit', [ClienteController::class, 'edit'])->name('clientes.edit');

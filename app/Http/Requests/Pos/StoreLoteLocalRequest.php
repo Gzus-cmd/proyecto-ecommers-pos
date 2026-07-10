@@ -19,7 +19,7 @@ class StoreLoteLocalRequest extends FormRequest
                 'lotes' => ['required', 'array', 'min:1'],
                 'lotes.*.sku_producto' => ['required', 'string', 'exists:productos_local,sku'],
                 'lotes.*.numero_lote' => ['required', 'string', 'max:100'],
-                'lotes.*.fecha_vencimiento' => ['required', 'date', 'after:today'],
+                'lotes.*.fecha_vencimiento' => ['required', 'date', 'after_or_equal:today'],
                 'lotes.*.cantidad_disponible' => ['required', 'integer', 'min:0'],
             ];
         }
@@ -28,7 +28,7 @@ class StoreLoteLocalRequest extends FormRequest
         return [
             'sku_producto' => ['required', 'string', 'exists:productos_local,sku'],
             'numero_lote' => ['required', 'string', 'max:100'],
-            'fecha_vencimiento' => ['required', 'date', 'after:today'],
+            'fecha_vencimiento' => ['required', 'date', 'after_or_equal:today'],
             'cantidad_disponible' => ['required', 'integer', 'min:0'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
@@ -41,7 +41,7 @@ class StoreLoteLocalRequest extends FormRequest
             'sku_producto.exists' => 'El producto seleccionado no existe.',
             'numero_lote.required' => 'El número de lote es obligatorio.',
             'fecha_vencimiento.required' => 'La fecha de vencimiento es obligatoria.',
-            'fecha_vencimiento.after' => 'La fecha debe ser posterior a hoy.',
+            'fecha_vencimiento.after_or_equal' => 'La fecha debe ser igual o posterior a hoy.',
             'cantidad_disponible.required' => 'La cantidad es obligatoria.',
             'cantidad_disponible.min' => 'La cantidad no puede ser negativa.',
             'lotes.required' => 'Debe agregar al menos un lote.',
@@ -49,7 +49,7 @@ class StoreLoteLocalRequest extends FormRequest
             'lotes.*.sku_producto.exists' => 'El producto seleccionado no existe.',
             'lotes.*.numero_lote.required' => 'El número de lote es obligatorio.',
             'lotes.*.fecha_vencimiento.required' => 'La fecha de vencimiento es obligatoria.',
-            'lotes.*.fecha_vencimiento.after' => 'La fecha debe ser posterior a hoy.',
+            'lotes.*.fecha_vencimiento.after_or_equal' => 'La fecha debe ser igual o posterior a hoy.',
             'lotes.*.cantidad_disponible.required' => 'La cantidad es obligatoria.',
             'lotes.*.cantidad_disponible.min' => 'La cantidad no puede ser negativa.',
         ];
