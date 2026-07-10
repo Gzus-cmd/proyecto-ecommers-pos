@@ -2,8 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\LoteLocalFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * Representa un lote de un producto en el inventario local del POS.
@@ -17,17 +22,16 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $fecha_vencimiento
  * @property int $cantidad_disponible
  * @property int|null $user_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read int $stock_actual
  * @property-read ProductoLocal $producto
- * @property-read \Illuminate\Database\Eloquent\Collection<int, DetalleVenta> $detallesVenta
+ * @property-read Collection<int, DetalleVenta> $detallesVenta
  * @property-read User|null $user
  */
 class LoteLocal extends Model
 {
-    /** @use HasFactory<\Database\Factories\LoteLocalFactory> */
+    /** @use HasFactory<LoteLocalFactory> */
     use HasFactory;
 
     protected $table = 'lotes_local';
@@ -53,8 +57,6 @@ class LoteLocal extends Model
     /**
      * Obtiene el stock actual del lote calculado como la cantidad disponible
      * menos la suma de cantidades vendidas en detalle_ventas.
-     *
-     * @return int
      */
     public function getStockActualAttribute(): int
     {
@@ -68,7 +70,7 @@ class LoteLocal extends Model
     /**
      * Obtiene el producto asociado a este lote.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function producto()
     {
@@ -78,7 +80,7 @@ class LoteLocal extends Model
     /**
      * Obtiene los detalles de venta asociados a este lote.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function detallesVenta()
     {
@@ -88,7 +90,7 @@ class LoteLocal extends Model
     /**
      * Obtiene el usuario que registró este lote.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function user()
     {

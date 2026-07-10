@@ -6,9 +6,11 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateSedeConfigRequest;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Inertia\Response;
 
 /**
  * Controlador para la configuración de la sede activa.
@@ -19,8 +21,8 @@ class SedeConfigController extends Controller
     /**
      * Muestra el formulario de configuración de la sede.
      *
-     * @param  Request $request  Petición actual
-     * @return \Inertia\Response
+     * @param  Request  $request  Petición actual
+     * @return Response
      */
     public function edit(Request $request)
     {
@@ -38,8 +40,8 @@ class SedeConfigController extends Controller
      * Actualiza la configuración de la sede en el archivo .env.
      * También refresca la caché de configuración de Laravel.
      *
-     * @param  UpdateSedeConfigRequest $request  Datos validados de la sede
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateSedeConfigRequest  $request  Datos validados de la sede
+     * @return RedirectResponse
      */
     public function update(UpdateSedeConfigRequest $request)
     {
@@ -48,15 +50,15 @@ class SedeConfigController extends Controller
         $envContent = file_get_contents(base_path('.env'));
 
         foreach ($data as $key => $value) {
-            $key = 'SEDE_' . strtoupper(Str::snake($key));
+            $key = 'SEDE_'.strtoupper(Str::snake($key));
 
             // Envolver en comillas si tiene espacios o caracteres especiales
             if (preg_match('/\s/', $value) || preg_match('/[^a-zA-Z0-9_\.\-]/', $value)) {
-                $value = '"' . $value . '"';
+                $value = '"'.$value.'"';
             }
 
             // Reemplazar o agregar
-            if (Str::contains($envContent, $key . '=')) {
+            if (Str::contains($envContent, $key.'=')) {
                 $envContent = preg_replace("/^{$key}=.*/m", "{$key}={$value}", $envContent);
             } else {
                 $envContent .= "\n{$key}={$value}";

@@ -18,8 +18,6 @@ class LoginController extends Controller
 {
     /**
      * Muestra el formulario de inicio de sesión.
-     *
-     * @return \Inertia\Response
      */
     public function create(): Response
     {
@@ -29,8 +27,7 @@ class LoginController extends Controller
     /**
      * Procesa el intento de inicio de sesión.
      *
-     * @param  LoginRequest $request  Credenciales del usuario
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  LoginRequest  $request  Credenciales del usuario
      */
     public function store(LoginRequest $request): RedirectResponse
     {
@@ -50,8 +47,7 @@ class LoginController extends Controller
     /**
      * Cierra la sesión del usuario e invalida la sesión.
      *
-     * @param  Request $request  Petición actual
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  Request  $request  Petición actual
      */
     public function destroy(Request $request): RedirectResponse
     {

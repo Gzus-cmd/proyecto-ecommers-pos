@@ -7,7 +7,9 @@ use App\Http\Requests\Pos\StoreLoteLocalRequest;
 use App\Http\Requests\Pos\UpdateLoteLocalRequest;
 use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la gestión de lotes del inventario local.
@@ -17,8 +19,8 @@ class LoteLocalController extends Controller
     /**
      * Muestra el listado paginado de lotes.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -40,7 +42,7 @@ class LoteLocalController extends Controller
     /**
      * Muestra el formulario para crear uno o múltiples lotes.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -54,8 +56,8 @@ class LoteLocalController extends Controller
     /**
      * Almacena uno o múltiples lotes en la base de datos.
      *
-     * @param  StoreLoteLocalRequest $request  Datos validados de los lotes
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  StoreLoteLocalRequest  $request  Datos validados de los lotes
+     * @return RedirectResponse
      */
     public function store(StoreLoteLocalRequest $request)
     {
@@ -71,6 +73,7 @@ class LoteLocalController extends Controller
             });
 
             $cantidad = count($data['lotes']);
+
             return redirect()->route('pos.lotes.index')
                 ->with('success', "{$cantidad} lotes creados correctamente.");
         }
@@ -86,8 +89,8 @@ class LoteLocalController extends Controller
     /**
      * Muestra el formulario para editar un lote existente.
      *
-     * @param  LoteLocal $lote  Lote a editar
-     * @return \Inertia\Response
+     * @param  LoteLocal  $lote  Lote a editar
+     * @return Response
      */
     public function edit(LoteLocal $lote)
     {
@@ -102,9 +105,9 @@ class LoteLocalController extends Controller
     /**
      * Actualiza un lote existente en la base de datos.
      *
-     * @param  UpdateLoteLocalRequest $request  Datos validados del lote
-     * @param  LoteLocal              $lote     Lote a actualizar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateLoteLocalRequest  $request  Datos validados del lote
+     * @param  LoteLocal  $lote  Lote a actualizar
+     * @return RedirectResponse
      */
     public function update(UpdateLoteLocalRequest $request, LoteLocal $lote)
     {
@@ -117,8 +120,8 @@ class LoteLocalController extends Controller
     /**
      * Muestra los detalles de un lote específico.
      *
-     * @param  LoteLocal $lote  Lote a mostrar
-     * @return \Inertia\Response
+     * @param  LoteLocal  $lote  Lote a mostrar
+     * @return Response
      */
     public function show(LoteLocal $lote)
     {
@@ -132,8 +135,8 @@ class LoteLocalController extends Controller
     /**
      * Retira el stock de un lote (establece cantidad_disponible en 0).
      *
-     * @param  LoteLocal $lote  Lote del cual retirar stock
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  LoteLocal  $lote  Lote del cual retirar stock
+     * @return RedirectResponse
      */
     public function retirar(LoteLocal $lote)
     {
@@ -146,8 +149,8 @@ class LoteLocalController extends Controller
     /**
      * Elimina un lote si no tiene stock asociado.
      *
-     * @param  LoteLocal $lote  Lote a eliminar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  LoteLocal  $lote  Lote a eliminar
+     * @return RedirectResponse
      */
     public function destroy(LoteLocal $lote)
     {

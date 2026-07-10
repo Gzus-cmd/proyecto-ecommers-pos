@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreMetodoPagoRequest;
 use App\Http\Requests\Pos\UpdateMetodoPagoRequest;
 use App\Models\MetodoPago;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la gestión de métodos de pago del POS.
@@ -16,8 +18,8 @@ class MetodoPagoController extends Controller
     /**
      * Muestra el listado paginado de métodos de pago.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -38,7 +40,7 @@ class MetodoPagoController extends Controller
     /**
      * Muestra el formulario para crear un nuevo método de pago.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -48,8 +50,8 @@ class MetodoPagoController extends Controller
     /**
      * Almacena un nuevo método de pago en la base de datos.
      *
-     * @param  StoreMetodoPagoRequest $request  Datos validados del método de pago
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  StoreMetodoPagoRequest  $request  Datos validados del método de pago
+     * @return RedirectResponse
      */
     public function store(StoreMetodoPagoRequest $request)
     {
@@ -62,8 +64,8 @@ class MetodoPagoController extends Controller
     /**
      * Muestra el formulario para editar un método de pago existente.
      *
-     * @param  MetodoPago $metodoPago  Método de pago a editar
-     * @return \Inertia\Response
+     * @param  MetodoPago  $metodoPago  Método de pago a editar
+     * @return Response
      */
     public function edit(MetodoPago $metodoPago)
     {
@@ -75,9 +77,9 @@ class MetodoPagoController extends Controller
     /**
      * Actualiza un método de pago existente en la base de datos.
      *
-     * @param  UpdateMetodoPagoRequest $request     Datos validados del método de pago
-     * @param  MetodoPago              $metodoPago  Método de pago a actualizar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateMetodoPagoRequest  $request  Datos validados del método de pago
+     * @param  MetodoPago  $metodoPago  Método de pago a actualizar
+     * @return RedirectResponse
      */
     public function update(UpdateMetodoPagoRequest $request, MetodoPago $metodoPago)
     {
@@ -90,8 +92,8 @@ class MetodoPagoController extends Controller
     /**
      * Elimina un método de pago si no tiene ventas asociadas.
      *
-     * @param  MetodoPago $metodoPago  Método de pago a eliminar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  MetodoPago  $metodoPago  Método de pago a eliminar
+     * @return RedirectResponse
      */
     public function destroy(MetodoPago $metodoPago)
     {

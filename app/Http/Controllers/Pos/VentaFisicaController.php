@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreVentaFisicaRequest;
 use App\Models\Cliente;
+use App\Models\DetalleVenta;
 use App\Models\LoteLocal;
 use App\Models\MetodoPago;
 use App\Models\ProductoLocal;
 use App\Models\VentaFisica;
-use App\Models\DetalleVenta;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Controlador para la gestión de ventas físicas (transacciones en punto de venta).
@@ -21,8 +24,8 @@ class VentaFisicaController extends Controller
     /**
      * Muestra el listado paginado de ventas.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -47,8 +50,7 @@ class VentaFisicaController extends Controller
      * Muestra el formulario para registrar una nueva venta.
      * Carga productos activos, métodos de pago, clientes y lotes disponibles.
      *
-     * @param  Request $request
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create(Request $request)
     {
@@ -71,8 +73,8 @@ class VentaFisicaController extends Controller
      * Registra una nueva venta y sus detalles en una transacción.
      * Soporta la creación inline de clientes por DNI.
      *
-     * @param  StoreVentaFisicaRequest $request  Datos validados de la venta y sus detalles
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  StoreVentaFisicaRequest  $request  Datos validados de la venta y sus detalles
+     * @return RedirectResponse
      */
     public function store(StoreVentaFisicaRequest $request)
     {
@@ -127,37 +129,37 @@ class VentaFisicaController extends Controller
     /**
      * Exporta las ventas en formato CSV, con filtro opcional por fechas.
      *
-     * @param  Request $request  Filtros de fecha_inicio y fecha_fin
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @param  Request  $request  Filtros de fecha_inicio y fecha_fin
+     * @return StreamedResponse
      */
     public function exportar(Request $request)
     {
         $ventas = VentaFisica::with(['cliente', 'user', 'detalles.producto'])
-            ->when($request->filled('fecha_inicio'), fn($q) => $q->whereDate('created_at', '>=', $request->fecha_inicio))
-            ->when($request->filled('fecha_fin'), fn($q) => $q->whereDate('created_at', '<=', $request->fecha_fin))
+            ->when($request->filled('fecha_inicio'), fn ($q) => $q->whereDate('created_at', '>=', $request->fecha_inicio))
+            ->when($request->filled('fecha_fin'), fn ($q) => $q->whereDate('created_at', '<=', $request->fecha_fin))
             ->orderBy('created_at', 'desc')
             ->get();
 
         $csv = "ID,Venta,Fecha,Cliente,Usuario,Subtotal,Impuesto,Total,Productos\n";
         foreach ($ventas as $v) {
-            $csv .= "{$v->id},Venta #{$v->id}," . $v->created_at->format('Y-m-d') . ",";
+            $csv .= "{$v->id},Venta #{$v->id},".$v->created_at->format('Y-m-d').',';
             $csv .= "{$v->cliente?->dni} {$v->cliente?->nombres} {$v->cliente?->apellidos},";
             $csv .= "{$v->user->name},";
-            $csv .= number_format($v->subtotal, 2) . "," . number_format($v->impuesto, 2) . "," . number_format($v->total, 2) . ",";
-            $csv .= "\"{$v->detalles->map(fn($d) => $d->producto?->nombre_comercial . ' x' . $d->cantidad)->implode(', ')}\"";
+            $csv .= number_format($v->subtotal, 2).','.number_format($v->impuesto, 2).','.number_format($v->total, 2).',';
+            $csv .= "\"{$v->detalles->map(fn ($d) => $d->producto?->nombre_comercial.' x'.$d->cantidad)->implode(', ')}\"";
             $csv .= "\n";
         }
 
         return response()->streamDownload(function () use ($csv) {
             echo $csv;
-        }, 'ventas-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv']);
+        }, 'ventas-'.now()->format('Y-m-d').'.csv', ['Content-Type' => 'text/csv']);
     }
 
     /**
      * Muestra los detalles de una venta específica.
      *
-     * @param  VentaFisica $venta  Venta a mostrar
-     * @return \Inertia\Response
+     * @param  VentaFisica  $venta  Venta a mostrar
+     * @return Response
      */
     public function show(VentaFisica $venta)
     {

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Database\Factories\ClienteFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 /**
  * Representa un cliente registrado en el sistema POS.
@@ -17,14 +19,13 @@ use Illuminate\Database\Eloquent\Builder;
  * @property string $apellidos
  * @property string|null $telefono
  * @property string|null $email
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
- * @property-read \Illuminate\Database\Eloquent\Collection<int, VentaFisica> $ventasFisicas
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, VentaFisica> $ventasFisicas
  */
 class Cliente extends Model
 {
-    /** @use HasFactory<\Database\Factories\ClienteFactory> */
+    /** @use HasFactory<ClienteFactory> */
     use HasFactory;
 
     protected $table = 'clientes';

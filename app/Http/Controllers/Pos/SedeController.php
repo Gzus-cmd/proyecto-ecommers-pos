@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreSedeRequest;
 use App\Http\Requests\Pos\UpdateSedeRequest;
 use App\Models\Sede;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la gestión de sedes/sucursales del POS.
@@ -16,8 +18,8 @@ class SedeController extends Controller
     /**
      * Muestra el listado paginado de sedes.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -39,7 +41,7 @@ class SedeController extends Controller
     /**
      * Muestra el formulario para crear una nueva sede.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -49,8 +51,8 @@ class SedeController extends Controller
     /**
      * Almacena una nueva sede en la base de datos.
      *
-     * @param  StoreSedeRequest $request  Datos validados de la sede
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  StoreSedeRequest  $request  Datos validados de la sede
+     * @return RedirectResponse
      */
     public function store(StoreSedeRequest $request)
     {
@@ -63,8 +65,8 @@ class SedeController extends Controller
     /**
      * Muestra el formulario para editar una sede existente.
      *
-     * @param  Sede $sede  Sede a editar
-     * @return \Inertia\Response
+     * @param  Sede  $sede  Sede a editar
+     * @return Response
      */
     public function edit(Sede $sede)
     {
@@ -76,9 +78,9 @@ class SedeController extends Controller
     /**
      * Actualiza una sede existente en la base de datos.
      *
-     * @param  UpdateSedeRequest $request  Datos validados de la sede
-     * @param  Sede              $sede     Sede a actualizar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateSedeRequest  $request  Datos validados de la sede
+     * @param  Sede  $sede  Sede a actualizar
+     * @return RedirectResponse
      */
     public function update(UpdateSedeRequest $request, Sede $sede)
     {
@@ -91,8 +93,8 @@ class SedeController extends Controller
     /**
      * Elimina (soft delete / hard delete) una sede si no tiene ventas asociadas.
      *
-     * @param  Sede $sede  Sede a eliminar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  Sede  $sede  Sede a eliminar
+     * @return RedirectResponse
      */
     public function destroy(Sede $sede)
     {

@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreClienteRequest;
 use App\Http\Requests\Pos\UpdateClienteRequest;
 use App\Models\Cliente;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la gestión de clientes del POS.
@@ -16,14 +19,14 @@ class ClienteController extends Controller
     /**
      * Busca un cliente por su número de DNI.
      *
-     * @param  Request $request  Contiene el DNI a buscar
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Request  $request  Contiene el DNI a buscar
+     * @return JsonResponse
      */
     public function searchByDni(Request $request)
     {
         $dni = $request->get('dni');
 
-        if (!$dni || strlen($dni) !== 8) {
+        if (! $dni || strlen($dni) !== 8) {
             return response()->json(['cliente' => null]);
         }
 
@@ -35,8 +38,8 @@ class ClienteController extends Controller
     /**
      * Muestra el listado paginado de clientes.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -52,14 +55,14 @@ class ClienteController extends Controller
 
         return inertia('Pos/Clientes/Index', [
             'clientes' => $clientes,
-            'search'   => $search,
+            'search' => $search,
         ]);
     }
 
     /**
      * Muestra el formulario para crear un nuevo cliente.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -70,8 +73,8 @@ class ClienteController extends Controller
      * Almacena un nuevo cliente en la base de datos.
      * Soporta tanto respuestas JSON como redirección Inertia.
      *
-     * @param  StoreClienteRequest $request  Datos validados del cliente
-     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     * @param  StoreClienteRequest  $request  Datos validados del cliente
+     * @return JsonResponse|RedirectResponse
      */
     public function store(StoreClienteRequest $request)
     {
@@ -88,8 +91,8 @@ class ClienteController extends Controller
     /**
      * Muestra el formulario para editar un cliente existente.
      *
-     * @param  Cliente $cliente  Cliente a editar
-     * @return \Inertia\Response
+     * @param  Cliente  $cliente  Cliente a editar
+     * @return Response
      */
     public function edit(Cliente $cliente)
     {
@@ -101,9 +104,9 @@ class ClienteController extends Controller
     /**
      * Actualiza un cliente existente en la base de datos.
      *
-     * @param  UpdateClienteRequest $request  Datos validados del cliente
-     * @param  Cliente              $cliente  Cliente a actualizar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateClienteRequest  $request  Datos validados del cliente
+     * @param  Cliente  $cliente  Cliente a actualizar
+     * @return RedirectResponse
      */
     public function update(UpdateClienteRequest $request, Cliente $cliente)
     {
@@ -116,8 +119,8 @@ class ClienteController extends Controller
     /**
      * Elimina un cliente de la base de datos.
      *
-     * @param  Cliente $cliente  Cliente a eliminar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  Cliente  $cliente  Cliente a eliminar
+     * @return RedirectResponse
      */
     public function destroy(Cliente $cliente)
     {

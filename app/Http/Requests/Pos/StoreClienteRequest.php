@@ -17,20 +17,20 @@ class StoreClienteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'dni'       => ['required', 'string', 'size:8', 'unique:clientes,dni'],
-            'nombres'   => ['nullable', 'string', 'max:255'],
+            'dni' => ['required', 'string', 'size:8', 'unique:clientes,dni'],
+            'nombres' => ['nullable', 'string', 'max:255'],
             'apellidos' => ['nullable', 'string', 'max:255'],
-            'telefono'  => ['nullable', 'string', 'max:20'],
-            'email'     => ['nullable', 'string', 'email', 'max:255'],
+            'telefono' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'string', 'email', 'max:255'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'dni.required'    => 'El DNI es obligatorio.',
-            'dni.unique'      => 'Este DNI ya está registrado.',
-            'dni.size'        => 'El DNI debe tener exactamente 8 dígitos.',
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.unique' => 'Este DNI ya está registrado.',
+            'dni.size' => 'El DNI debe tener exactamente 8 dígitos.',
         ];
     }
 }

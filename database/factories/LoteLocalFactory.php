@@ -19,7 +19,7 @@ class LoteLocalFactory extends Factory
     {
         return [
             'sku_producto' => ProductoLocal::factory(),
-            'numero_lote' => 'LOT-' . strtoupper(fake()->bothify('??###')),
+            'numero_lote' => 'LOT-'.strtoupper(fake()->bothify('??###')),
             'fecha_vencimiento' => fake()->dateTimeBetween('+1 month', '+3 years'),
             'cantidad_disponible' => fake()->numberBetween(10, 500),
         ];

@@ -23,7 +23,7 @@ class MetodoPagoFactory extends Factory
     public function definition(): array
     {
         return [
-            'nombre' => fake()->randomElement(self::$metodos) . ' ' . fake()->unique()->numerify('##'),
+            'nombre' => fake()->randomElement(self::$metodos).' '.fake()->unique()->numerify('##'),
             'activo' => true,
         ];
     }

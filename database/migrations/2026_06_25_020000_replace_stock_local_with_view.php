@@ -20,7 +20,7 @@ return new class extends Migration
 
         // 3. Create v_stock_lotes view
         DB::statement('DROP VIEW IF EXISTS v_stock_lotes');
-        DB::statement("
+        DB::statement('
             CREATE VIEW v_stock_lotes AS
             SELECT
                 l.id,
@@ -34,12 +34,12 @@ return new class extends Migration
             LEFT JOIN detalle_ventas dv ON dv.lote_local_id = l.id
             LEFT JOIN ventas_fisicas vf ON dv.venta_id = vf.id
             GROUP BY l.id, l.sku_producto, l.numero_lote, l.fecha_vencimiento, l.cantidad_disponible
-        ");
+        ');
     }
 
     public function down(): void
     {
-        DB::statement("DROP VIEW IF EXISTS v_stock_lotes");
+        DB::statement('DROP VIEW IF EXISTS v_stock_lotes');
 
         Schema::create('stock_local', function (Blueprint $table) {
             $table->id();

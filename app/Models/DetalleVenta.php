@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Database\Factories\DetalleVentaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * Representa la línea de detalle de una venta física.
@@ -18,16 +21,15 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $cantidad
  * @property float $precio_unitario
  * @property float $subtotal
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- *
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read VentaFisica $venta
  * @property-read ProductoLocal $producto
  * @property-read LoteLocal|null $lote
  */
 class DetalleVenta extends Model
 {
-    /** @use HasFactory<\Database\Factories\DetalleVentaFactory> */
+    /** @use HasFactory<DetalleVentaFactory> */
     use HasFactory;
 
     protected $table = 'detalle_ventas';
@@ -53,7 +55,7 @@ class DetalleVenta extends Model
     /**
      * Obtiene la venta a la que pertenece este detalle.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function venta()
     {
@@ -63,7 +65,7 @@ class DetalleVenta extends Model
     /**
      * Obtiene el producto vendido en este detalle.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function producto()
     {
@@ -73,7 +75,7 @@ class DetalleVenta extends Model
     /**
      * Obtiene el lote del producto asociado a este detalle (opcional).
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function lote()
     {

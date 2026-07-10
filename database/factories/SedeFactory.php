@@ -17,8 +17,8 @@ class SedeFactory extends Factory
     public function definition(): array
     {
         return [
-            'codigo' => 'SED-' . fake()->unique()->numerify('###'),
-            'nombre' => fake()->company() . ' Sede',
+            'codigo' => 'SED-'.fake()->unique()->numerify('###'),
+            'nombre' => fake()->company().' Sede',
             'direccion' => fake()->address(),
             'telefono' => fake()->phoneNumber(),
             'activo' => true,

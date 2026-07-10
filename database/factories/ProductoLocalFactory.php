@@ -34,13 +34,13 @@ class ProductoLocalFactory extends Factory
     public function definition(): array
     {
         $nombre = fake()->randomElement(self::$medicamentos);
-        $sku = 'PROD-' . fake()->unique()->numerify('####');
+        $sku = 'PROD-'.fake()->unique()->numerify('####');
 
         return [
             'sku' => $sku,
-            'nombre_comercial' => $nombre . ' ' . fake()->randomElement(['Genfar', 'MK', 'Medrock', 'Astra', 'Bayer']),
+            'nombre_comercial' => $nombre.' '.fake()->randomElement(['Genfar', 'MK', 'Medrock', 'Astra', 'Bayer']),
             'nombre_generico' => $nombre,
-            'descripcion' => 'Medicamento ' . strtolower($nombre) . ' para uso farmacéutico.',
+            'descripcion' => 'Medicamento '.strtolower($nombre).' para uso farmacéutico.',
             'concentracion' => fake()->randomElement(self::$concentraciones),
             'forma_farmaceutica' => fake()->randomElement(self::$formas),
             'requiere_receta' => fake()->boolean(),

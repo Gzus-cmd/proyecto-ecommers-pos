@@ -48,4 +48,4 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-require __DIR__ . '/pos.php';
+require __DIR__.'/pos.php';

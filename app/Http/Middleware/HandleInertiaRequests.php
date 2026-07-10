@@ -22,7 +22,7 @@ class HandleInertiaRequests extends Middleware
      * Define las propiedades compartidas por defecto con todas las páginas Inertia.
      * Incluye datos del usuario autenticado, roles, mensajes flash y config de sede.
      *
-     * @param  Request $request  Petición actual
+     * @param  Request  $request  Petición actual
      * @return array<string, mixed>
      */
     public function share(Request $request): array
@@ -32,8 +32,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user()
                     ? [
-                        'id'    => $request->user()->id,
-                        'name'  => $request->user()->name,
+                        'id' => $request->user()->id,
+                        'name' => $request->user()->name,
                         'email' => $request->user()->email,
                         'roles' => $request->user()->getRoleNames(),
                     ]
@@ -41,7 +41,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
-                'error'   => fn () => $request->session()->get('error'),
+                'error' => fn () => $request->session()->get('error'),
             ],
             'sede' => [
                 'nombre' => config('sede.nombre'),

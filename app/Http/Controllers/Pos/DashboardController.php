@@ -8,6 +8,7 @@ use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
 use App\Models\VentaFisica;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador del dashboard principal del POS.
@@ -19,8 +20,8 @@ class DashboardController extends Controller
     /**
      * Muestra el dashboard con las métricas del sistema.
      *
-     * @param  Request $request  Filtros opcionales de fecha_inicio y fecha_fin
-     * @return \Inertia\Response
+     * @param  Request  $request  Filtros opcionales de fecha_inicio y fecha_fin
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -31,8 +32,8 @@ class DashboardController extends Controller
         // ── Filtro de fechas ──────────────────────────────────────────
         $fechaInicio = $request->input('fecha_inicio', now()->subDays(29)->format('Y-m-d'));
         $fechaFin = $request->input('fecha_fin', now()->format('Y-m-d'));
-        $inicio = $fechaInicio . ' 00:00:00';
-        $fin = $fechaFin . ' 23:59:59';
+        $inicio = $fechaInicio.' 00:00:00';
+        $fin = $fechaFin.' 23:59:59';
 
         // ── Stock bajo (stock_actual < 10) + agotados (stock_actual = 0) ──
         $lotes = LoteLocal::with('producto')->get();
@@ -71,6 +72,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($lote) {
                 $diasRestantes = now()->diffInDays($lote->fecha_vencimiento, false);
+
                 return [
                     'sku' => $lote->sku_producto,
                     'nombre_comercial' => $lote->producto?->nombre_comercial ?? '-',
@@ -115,6 +117,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($item) {
                 $producto = ProductoLocal::find($item->producto_sku);
+
                 return [
                     'sku' => $item->producto_sku,
                     'nombre_comercial' => $producto?->nombre_comercial ?? '-',
@@ -128,23 +131,23 @@ class DashboardController extends Controller
         $inactivos = ProductoLocal::where('activo', false)->count();
 
         return inertia('Pos/Dashboard/Index', [
-            'totalProductos'       => $totalProductos,
-            'ventasHoy'            => $ventasHoy,
-            'ventasHoyMonto'       => $ventasHoyMonto,
-            'stockBajo'            => $stockBajo,
-            'stockBajoProductos'   => $stockBajoProductos,
-            'stockAgotado'         => $stockAgotado,
-            'stockAgotadoProductos'=> $stockAgotadoProductos,
-            'productosPorVencer'   => $productosPorVencer,
+            'totalProductos' => $totalProductos,
+            'ventasHoy' => $ventasHoy,
+            'ventasHoyMonto' => $ventasHoyMonto,
+            'stockBajo' => $stockBajo,
+            'stockBajoProductos' => $stockBajoProductos,
+            'stockAgotado' => $stockAgotado,
+            'stockAgotadoProductos' => $stockAgotadoProductos,
+            'productosPorVencer' => $productosPorVencer,
             'productosPorVencerCount' => $productosPorVencerCount,
-            'ventasPorDia'         => $dias,
-            'productosPorEstado'   => [
-                'activos'   => $activos,
+            'ventasPorDia' => $dias,
+            'productosPorEstado' => [
+                'activos' => $activos,
                 'inactivos' => $inactivos,
             ],
-            'topProductos'         => $topProductos,
-            'fechaInicio'          => $fechaInicio,
-            'fechaFin'             => $fechaFin,
+            'topProductos' => $topProductos,
+            'fechaInicio' => $fechaInicio,
+            'fechaFin' => $fechaFin,
         ]);
     }
 }

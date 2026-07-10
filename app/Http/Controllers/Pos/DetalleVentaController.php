@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Models\DetalleVenta;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la consulta de detalles de ventas.
@@ -14,8 +15,8 @@ class DetalleVentaController extends Controller
     /**
      * Muestra el listado paginado de detalles de venta.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {

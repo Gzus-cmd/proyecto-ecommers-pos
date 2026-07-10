@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pos;
 use App\Http\Controllers\Controller;
 use App\Models\LoteLocal;
 use Illuminate\Http\Request;
+use Inertia\Response;
 
 /**
  * Controlador para la consulta del stock actual del inventario local.
@@ -15,8 +16,8 @@ class StockLocalController extends Controller
     /**
      * Muestra el listado paginado del stock actual de productos.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {

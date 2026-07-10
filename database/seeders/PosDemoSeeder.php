@@ -80,7 +80,7 @@ class PosDemoSeeder extends Seeder
             ProductoLocal::firstOrCreate(
                 ['sku' => $data['sku']],
                 array_merge($data, [
-                    'descripcion' => 'Medicamento ' . strtolower($data['nombre_generico']),
+                    'descripcion' => 'Medicamento '.strtolower($data['nombre_generico']),
                     'requiere_receta' => $data['requiere_receta'] ?? false,
                     'activo' => true,
                 ])
@@ -96,7 +96,7 @@ class PosDemoSeeder extends Seeder
         foreach ($freshProducts as $producto) {
             LoteLocal::factory()->fresh()->create([
                 'sku_producto' => $producto->sku,
-                'numero_lote' => 'LOT-FRESH-' . str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
+                'numero_lote' => 'LOT-FRESH-'.str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
                 'cantidad_disponible' => 100,
             ]);
         }
@@ -106,7 +106,7 @@ class PosDemoSeeder extends Seeder
         foreach ($nearProducts as $producto) {
             LoteLocal::factory()->nearExpiry()->create([
                 'sku_producto' => $producto->sku,
-                'numero_lote' => 'LOT-NEAR-' . str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
+                'numero_lote' => 'LOT-NEAR-'.str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
                 'cantidad_disponible' => 50,
             ]);
         }
@@ -116,7 +116,7 @@ class PosDemoSeeder extends Seeder
         foreach ($expiredProducts as $producto) {
             LoteLocal::factory()->expired()->create([
                 'sku_producto' => $producto->sku,
-                'numero_lote' => 'LOT-EXP-' . str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
+                'numero_lote' => 'LOT-EXP-'.str_pad((string) ++$loteIndex, 3, '0', STR_PAD_LEFT),
                 'cantidad_disponible' => 30,
             ]);
         }

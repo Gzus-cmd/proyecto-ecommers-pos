@@ -15,7 +15,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('ventas_fisicas', 'empleado_id')) {
+        if (! Schema::hasColumn('ventas_fisicas', 'empleado_id')) {
             return;
         }
 
@@ -36,7 +36,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (!Schema::hasColumn('ventas_fisicas', 'user_id')) {
+        if (! Schema::hasColumn('ventas_fisicas', 'user_id')) {
             return;
         }
 

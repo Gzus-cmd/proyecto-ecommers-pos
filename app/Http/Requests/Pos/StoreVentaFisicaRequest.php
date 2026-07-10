@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Pos;
 
+use App\Models\Cliente;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -18,7 +19,7 @@ class StoreVentaFisicaRequest extends FormRequest
     {
         return [
             'cliente_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
-                if ($value && $value > 0 && !\App\Models\Cliente::where('id', $value)->exists()) {
+                if ($value && $value > 0 && ! Cliente::where('id', $value)->exists()) {
                     $fail('El cliente seleccionado no existe.');
                 }
             }],

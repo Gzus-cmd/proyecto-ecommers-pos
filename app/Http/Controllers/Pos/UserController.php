@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\StoreUserRequest;
 use App\Http\Requests\Pos\UpdateUserRequest;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Response;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -18,8 +20,8 @@ class UserController extends Controller
     /**
      * Muestra el listado paginado de usuarios.
      *
-     * @param  Request $request  Parámetros de búsqueda
-     * @return \Inertia\Response
+     * @param  Request  $request  Parámetros de búsqueda
+     * @return Response
      */
     public function index(Request $request)
     {
@@ -34,7 +36,7 @@ class UserController extends Controller
             ->paginate(10);
 
         return inertia('Pos/Users/Index', [
-            'users'  => $users,
+            'users' => $users,
             'search' => $search,
         ]);
     }
@@ -42,7 +44,7 @@ class UserController extends Controller
     /**
      * Muestra el formulario para crear un nuevo usuario.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -54,8 +56,8 @@ class UserController extends Controller
     /**
      * Almacena un nuevo usuario y le asigna un rol.
      *
-     * @param  StoreUserRequest $request  Datos validados del usuario
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  StoreUserRequest  $request  Datos validados del usuario
+     * @return RedirectResponse
      */
     public function store(StoreUserRequest $request)
     {
@@ -72,8 +74,8 @@ class UserController extends Controller
     /**
      * Muestra el formulario para editar un usuario existente.
      *
-     * @param  User $user  Usuario a editar
-     * @return \Inertia\Response
+     * @param  User  $user  Usuario a editar
+     * @return Response
      */
     public function edit(User $user)
     {
@@ -88,9 +90,9 @@ class UserController extends Controller
     /**
      * Actualiza un usuario existente y sincroniza su rol.
      *
-     * @param  UpdateUserRequest $request  Datos validados del usuario
-     * @param  User              $user     Usuario a actualizar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  UpdateUserRequest  $request  Datos validados del usuario
+     * @param  User  $user  Usuario a actualizar
+     * @return RedirectResponse
      */
     public function update(UpdateUserRequest $request, User $user)
     {
@@ -113,8 +115,8 @@ class UserController extends Controller
     /**
      * Desactiva un usuario (no lo elimina físicamente).
      *
-     * @param  User $user  Usuario a desactivar
-     * @return \Illuminate\Http\RedirectResponse
+     * @param  User  $user  Usuario a desactivar
+     * @return RedirectResponse
      */
     public function destroy(User $user)
     {

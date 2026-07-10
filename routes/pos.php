@@ -1,15 +1,15 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Pos\ClienteController;
 use App\Http\Controllers\Pos\DashboardController;
-use App\Http\Controllers\Pos\ProductoLocalController;
+use App\Http\Controllers\Pos\DetalleVentaController;
 use App\Http\Controllers\Pos\LoteLocalController;
 use App\Http\Controllers\Pos\MetodoPagoController;
-use App\Http\Controllers\Pos\ClienteController;
+use App\Http\Controllers\Pos\ProductoLocalController;
 use App\Http\Controllers\Pos\StockLocalController;
-use App\Http\Controllers\Pos\VentaFisicaController;
-use App\Http\Controllers\Pos\DetalleVentaController;
 use App\Http\Controllers\Pos\UserController;
+use App\Http\Controllers\Pos\VentaFisicaController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
