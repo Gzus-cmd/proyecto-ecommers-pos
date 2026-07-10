@@ -5,8 +5,8 @@
  * Configura Inertia.js con Vue 3, registra el helper de rutas
  * y el componente Toaster de vue-sonner para notificaciones.
  *
- * Las páginas se resuelven automáticamente desde ./Pages/**/*.vue
- * usando el glob de Vite + laravel-vite-plugin.
+ * Las páginas se resuelven automáticamente desde ./Pages/ usando
+ * el glob de Vite + laravel-vite-plugin.
  */
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
