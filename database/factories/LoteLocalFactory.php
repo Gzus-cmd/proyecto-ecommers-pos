@@ -1,0 +1,67 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Factories;
+
+use App\Models\LoteLocal;
+use App\Models\ProductoLocal;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<LoteLocal>
+ */
+class LoteLocalFactory extends Factory
+{
+    protected $model = LoteLocal::class;
+
+    public function definition(): array
+    {
+        return [
+            'sku_producto' => ProductoLocal::factory(),
+            'numero_lote' => 'LOT-'.strtoupper(fake()->bothify('??###')),
+            'fecha_vencimiento' => fake()->dateTimeBetween('+1 month', '+3 years'),
+            'cantidad_disponible' => fake()->numberBetween(10, 500),
+        ];
+    }
+
+    /** Lote con vencimiento fresco (+1 año) */
+    public function fresh(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'fecha_vencimiento' => fake()->dateTimeBetween('+11 months', '+13 months'),
+        ]);
+    }
+
+    /** Lote próximo a vencer (entre hoy y 30 días) */
+    public function nearExpiry(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'fecha_vencimiento' => fake()->dateTimeBetween('now', '+30 days'),
+        ]);
+    }
+
+    /** Lote ya vencido */
+    public function expired(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'fecha_vencimiento' => fake()->dateTimeBetween('-6 months', '-1 day'),
+        ]);
+    }
+
+    /** Asignar un sku_producto específico */
+    public function withProduct(string $sku): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'sku_producto' => $sku,
+        ]);
+    }
+
+    /** Lote con stock bajo */
+    public function stockBajo(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'cantidad_disponible' => fake()->numberBetween(1, 5),
+        ]);
+    }
+}

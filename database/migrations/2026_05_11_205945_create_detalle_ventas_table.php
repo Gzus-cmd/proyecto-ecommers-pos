@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('detalle_ventas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('venta_id')->constrained('ventas_fisicas');
-            $table->foreignId('producto_id')->constrained('productos_local');
+            $table->string('producto_sku');
+            $table->foreign('producto_sku')->references('sku')->on('productos_local');
             $table->integer('cantidad');
             $table->decimal('precio_unitario', 10, 2);
             $table->decimal('subtotal', 10, 2);

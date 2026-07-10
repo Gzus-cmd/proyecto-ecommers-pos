@@ -1,0 +1,72 @@
+<script setup lang="ts">
+/**
+ * Lotes/Edit.vue
+ *
+ * Página para editar un lote existente. Precarga los datos del lote
+ * recibido por props. Permite modificar producto, número de lote,
+ * fecha de vencimiento y cantidad disponible. Envía PUT a
+ * 'pos.lotes.update'.
+ *
+ * Props:
+ * - lote: Objeto LoteLocal con datos actuales
+ * - productos: Lista de productos para el select
+ */
+import { useForm, router } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
+import AppPageShell from '@/Components/pos/AppPageShell.vue';
+import FormPage from '@/Components/pos/FormPage.vue';
+import FormField from '@/Components/pos/FormField.vue';
+import Input from '@/Components/pos/ui/Input.vue';
+import Select from '@/Components/pos/ui/Select.vue';
+import { toast } from 'vue-sonner';
+import type { LoteLocal, ProductoLocal } from '@/types';
+
+const props = defineProps<{
+    lote: LoteLocal;
+    productos: ProductoLocal[];
+}>();
+
+const form = useForm({
+    sku_producto: props.lote.sku_producto,
+    numero_lote: props.lote.numero_lote,
+    fecha_vencimiento: props.lote.fecha_vencimiento,
+    cantidad_disponible: String(props.lote.cantidad_disponible),
+});
+
+/** Envía el formulario para actualizar el lote */
+function submit() {
+    form.put(route('pos.lotes.update', props.lote.id), {
+        onSuccess: () => {
+            toast.success('Lote actualizado correctamente');
+        },
+        onError: (errors) => {
+            toast.error('Error al actualizar el lote');
+        },
+    });
+}
+</script>
+
+<template>
+    <AppPageShell>
+        <FormPage title="Editar Lote" :description="`Editando lote: ${lote.numero_lote}`" :is-editing="true" back-route="pos.lotes.index" @submit="submit">
+            <FormField label="Producto" required :error="form.errors.sku_producto">
+                <Select
+                    v-model="form.sku_producto"
+                    :options="productos.map(p => ({ value: p.sku, label: `${p.sku} - ${p.nombre_comercial}` }))"
+                />
+            </FormField>
+
+            <FormField label="Número de Lote" required :error="form.errors.numero_lote">
+                <Input v-model="form.numero_lote" placeholder="Ej: LOTE-001" />
+            </FormField>
+
+            <FormField label="Fecha de Vencimiento" required :error="form.errors.fecha_vencimiento">
+                <Input v-model="form.fecha_vencimiento" type="date" />
+            </FormField>
+
+            <FormField label="Cantidad Disponible" required :error="form.errors.cantidad_disponible">
+                <Input v-model="form.cantidad_disponible" type="number" min="0" placeholder="0" />
+            </FormField>
+        </FormPage>
+    </AppPageShell>
+</template>

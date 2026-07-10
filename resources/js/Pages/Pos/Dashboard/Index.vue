@@ -1,0 +1,828 @@
+<script setup lang="ts">
+/**
+ * Dashboard/Index.vue
+ *
+ * Página principal del Dashboard del POS. Muestra tarjetas de resumen
+ * (total productos, ventas hoy, productos por vencer, stock bajo),
+ * gráfico de ventas por día (SVG), gráfico de donut de productos por
+ * estado, y tabla de top productos más vendidos con filtro de fechas.
+ *
+ * Props: todas las métricas son inyectadas desde el backend como props
+ * de Inertia (paginated data no aplica aquí, son agregaciones).
+ */
+import { ref, computed } from 'vue';
+import { Head } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
+import { router } from '@inertiajs/vue3';
+import AppPageShell from '@/Components/pos/AppPageShell.vue';
+
+interface ProductoVencer {
+    sku: string;
+    nombre_comercial: string;
+    fecha_vencimiento: string;
+    dias_restantes: number;
+    lote?: string;
+}
+
+interface VentaDia {
+    fecha: string;
+    total: number;
+    monto: number;
+}
+
+interface StockBajoItem {
+    producto: string;
+    sku: string;
+    cantidad: number;
+    lote: string;
+}
+
+interface TopProducto {
+    sku: string;
+    nombre_comercial: string;
+    total_vendido: number;
+    total_monto: number;
+}
+
+const props = withDefaults(defineProps<{
+    totalProductos?: number;
+    ventasHoy?: number;
+    ventasHoyMonto?: number;
+    stockBajo?: number;
+    stockBajoProductos?: StockBajoItem[];
+    stockAgotado?: number;
+    stockAgotadoProductos?: StockBajoItem[];
+    productosPorVencer?: ProductoVencer[];
+    productosPorVencerCount?: number;
+    ventasPorDia?: VentaDia[];
+    productosPorEstado?: { activos: number; inactivos: number };
+    topProductos?: TopProducto[];
+    fechaInicio?: string;
+    fechaFin?: string;
+}>(),
+{
+    totalProductos: 0,
+    ventasHoy: 0,
+    ventasHoyMonto: 0,
+    stockBajo: 0,
+    stockBajoProductos: () => [],
+    stockAgotado: 0,
+    stockAgotadoProductos: () => [],
+    productosPorVencer: () => [],
+    productosPorVencerCount: 0,
+    ventasPorDia: () => [],
+    productosPorEstado: () => ({ activos: 0, inactivos: 0 }),
+    topProductos: () => [],
+    fechaInicio: '',
+    fechaFin: '',
+});
+
+/** Controla la visibilidad del modal de productos por vencer */
+const showVencerModal = ref(false);
+/** Controla la visibilidad del modal de stock bajo */
+const showStockBajoModal = ref(false);
+
+const fechaInicioModel = ref(props.fechaInicio);
+const fechaFinModel = ref(props.fechaFin);
+
+/** Productos cuya fecha de vencimiento ya pasó */
+const productosVencidos = computed(() =>
+    (props.productosPorVencer ?? []).filter((p) => p.dias_restantes <= 0),
+);
+/** Productos que vencen en el futuro */
+const productosProximos = computed(() =>
+    (props.productosPorVencer ?? []).filter((p) => p.dias_restantes > 0),
+);
+
+/**
+ * Retorna la clase de color según los días restantes.
+ * @param dias - Días hasta el vencimiento (puede ser negativo)
+ */
+function diasColor(dias: number): string {
+    if (dias <= 0) return 'text-red-400';
+    if (dias <= 30) return 'text-orange-400';
+    if (dias <= 90) return 'text-yellow-400';
+    return 'text-emerald-400';
+}
+
+/**
+ * Retorna la etiqueta legible según los días restantes.
+ * @param dias - Días hasta el vencimiento
+ */
+function diasLabel(dias: number): string {
+    if (dias <= 0) return 'Vencido';
+    if (dias === 1) return '1 día';
+    return `${dias} días`;
+}
+
+/** Recarga el dashboard aplicando el filtro de fechas seleccionado */
+function reloadWithDates() {
+    router.get(
+        route('pos.dashboard'),
+        {
+            fecha_inicio: fechaInicioModel.value || undefined,
+            fecha_fin: fechaFinModel.value || undefined,
+        },
+        { preserveState: true, preserveScroll: true },
+    );
+}
+
+/** Tarjetas de métricas del dashboard con su configuración visual */
+const cards = computed(() => [
+    {
+        label: 'Total Productos',
+        value: props.totalProductos ?? 0,
+        icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+        color: 'blue',
+    },
+    {
+        label: 'Ventas Hoy',
+        value: props.ventasHoy ?? 0,
+        subtitle: `S/ ${Number(props.ventasHoyMonto ?? 0).toFixed(2)}`,
+        icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z',
+        color: 'emerald',
+    },
+    {
+        label: 'Productos por Vencer',
+        value: props.productosPorVencerCount ?? 0,
+        icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+        color: 'amber',
+        clickable: true,
+    },
+    {
+        label: 'Stock Bajo',
+        value: (props.stockBajo ?? 0) + (props.stockAgotado ?? 0),
+        subtitle: `${props.stockAgotado ?? 0} agotados`,
+        icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z',
+        color: 'red',
+        clickable: true,
+    },
+]);
+
+/** Total de productos (activos + inactivos) para el gráfico donut */
+const totalProductos = computed(() => (props.productosPorEstado?.activos ?? 0) + (props.productosPorEstado?.inactivos ?? 0));
+/** Porcentaje de productos activos para el arco del donut */
+const donutPercentage = computed(() =>
+    totalProductos.value > 0 ? ((props.productosPorEstado?.activos ?? 0) / totalProductos.value) * 100 : 0,
+);
+const donutCircumference = 2 * Math.PI * 40;
+const donutOffset = computed(() => donutCircumference - (donutPercentage.value / 100) * donutCircumference);
+
+const ventasData = computed(() => props.ventasPorDia ?? []);
+/** Valor máximo de ventas (número de ventas) para escalar el eje Y */
+const maxVentas = computed(() => {
+    const values = ventasData.value.map((d) => d.total);
+    return values.length > 0 ? Math.max(...values) : 1;
+});
+/** Valor máximo de montos para escalar (actualmente no usado en gráfico) */
+const maxMonto = computed(() => {
+    const values = ventasData.value.map((d) => d.monto);
+    return values.length > 0 ? Math.max(...values) : 1;
+});
+/** Ancho dinámico del gráfico SVG según la cantidad de datos */
+const chartWidth = computed(() => Math.max(ventasData.value.length * 70, 520));
+const chartHeight = 260;
+const padding = { top: 30, right: 20, bottom: 40, left: 50 };
+const plotW = computed(() => chartWidth.value - padding.left - padding.right);
+const plotH = computed(() => chartHeight - padding.top - padding.bottom);
+
+/** Posición X de un punto en el gráfico según su índice */
+function xPos(i: number): number {
+    return ventasData.value.length > 1
+        ? padding.left + (i / (ventasData.value.length - 1)) * plotW.value
+        : padding.left + plotW.value / 2;
+}
+
+/** Posición Y de un punto en el gráfico según el valor */
+function yPos(total: number): number {
+    return padding.top + plotH.value - (total / (maxVentas.value || 1)) * plotH.value;
+}
+
+/** Genera la cadena de puntos para la polyline del gráfico de ventas */
+function linePoints(): string {
+    return ventasData.value
+        .map((d, i) => `${xPos(i)},${yPos(d.total)}`)
+        .join(' ');
+}
+
+/** Etiquetas del eje Y con valores representativos espaciados uniformemente */
+const yLabels = computed(() => {
+    const max = maxVentas.value;
+    const steps = 5;
+    const labels: { value: number; y: number }[] = [];
+    for (let i = 0; i <= steps; i++) {
+        const val = Math.round((max / steps) * (steps - i));
+        labels.push({ value: val, y: padding.top + (i / steps) * plotH.value });
+    }
+    return labels;
+});
+
+/** Formatea una fecha a día de la semana abreviado (ej. "lun", "mar") */
+function formatDate(fecha: string): string {
+    if (!fecha) return '';
+    const d = new Date(fecha + 'T00:00:00');
+    return d.toLocaleDateString('es', { weekday: 'short' });
+}
+
+/** Formatea una fecha al formato local peruano (DD/MM/AAAA) */
+function formatFechaDDMM(fecha: string): string {
+    if (!fecha) return '';
+    const d = new Date(fecha + 'T00:00:00');
+    return d.toLocaleDateString('es-PE');
+}
+
+/** Maneja el click en una tarjeta clickeable para abrir su modal */
+function cardClicked(card: ReturnType<typeof cards.value>[0]) {
+    if (card.label === 'Productos por Vencer') {
+        showVencerModal.value = true;
+    }
+    if (card.label === 'Stock Bajo') {
+        showStockBajoModal.value = true;
+    }
+}
+</script>
+
+<template>
+    <AppPageShell>
+        <Head title="Dashboard" />
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-white">Dashboard</h1>
+            <p class="mt-1 text-sm text-gray-400">Resumen del sistema</p>
+        </div>
+
+        <!-- Metric cards -->
+        <div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                v-for="card in cards"
+                :key="card.label"
+                :class="[
+                    'group relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900 p-6 transition-all duration-200 card-shadow',
+                    card.clickable ? 'cursor-pointer hover:bg-gray-800/50 hover:border-gray-700 hover:-translate-y-0.5' : '',
+                ]"
+                @click="cardClicked(card)"
+            >
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-400">{{ card.label }}</p>
+                        <p class="mt-2 text-3xl font-bold text-white">{{ card.value }}</p>
+                        <p v-if="'subtitle' in card && card.subtitle" class="mt-1 text-xs text-gray-500">{{ card.subtitle }}</p>
+                    </div>
+                    <div
+                        :class="[
+                            'flex h-12 w-12 items-center justify-center rounded-lg',
+                            card.color === 'blue' && 'bg-blue-600/10 text-blue-400',
+                            card.color === 'emerald' && 'bg-emerald-600/10 text-emerald-400',
+                            card.color === 'amber' && 'bg-amber-600/10 text-amber-400',
+                            card.color === 'red' && 'bg-red-600/10 text-red-400',
+                            card.color === 'purple' && 'bg-purple-600/10 text-purple-400',
+                        ]"
+                    >
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="card.icon" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <!-- Line chart: Ventas por día -->
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
+                <h3 class="mb-1 text-base font-semibold text-white">Ventas por Día</h3>
+                <p class="mb-6 text-sm text-gray-400">
+                    {{ fechaInicio ? formatFechaDDMM(fechaInicio) : '' }} — {{ fechaFin ? formatFechaDDMM(fechaFin) : '' }}
+                </p>
+
+                <div class="overflow-x-auto custom-scrollbar pb-2">
+                    <svg
+                        :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+                        class="w-full"
+                        :style="{ minHeight: chartHeight + 'px', minWidth: chartWidth + 'px' }"
+                    >
+                        <!-- Eje Y — líneas de fondo y etiquetas -->
+                        <template v-for="(label, i) in yLabels" :key="'y-' + i">
+                            <line
+                                :x1="padding.left"
+                                :y1="label.y"
+                                :x2="chartWidth - padding.right"
+                                :y2="label.y"
+                                stroke="#374151"
+                                stroke-width="1"
+                                stroke-dasharray="4,4"
+                            />
+                            <text
+                                :x="padding.left - 8"
+                                :y="label.y + 4"
+                                text-anchor="end"
+                                fill="#9ca3af"
+                                font-size="11"
+                                font-weight="500"
+                            >
+                                {{ label.value }}
+                            </text>
+                        </template>
+
+                        <!-- Gradiente para el área bajo la línea -->
+                        <defs>
+                            <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.25" />
+                                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.02" />
+                            </linearGradient>
+                        </defs>
+
+                        <!-- Área bajo la línea -->
+                        <polygon
+                            v-if="ventasData.length > 0"
+                            :points="
+                                ventasData.map((d, i) => `${xPos(i)},${yPos(d.total)}`).join(' ') +
+                                ' ' +
+                                xPos(ventasData.length - 1) + ',' + (padding.top + plotH) + ' ' +
+                                padding.left + ',' + (padding.top + plotH)
+                            "
+                            fill="url(#lineGrad)"
+                        />
+
+                        <!-- Línea poligonal con animación -->
+                        <polyline
+                            v-if="ventasData.length > 0"
+                            :points="linePoints()"
+                            fill="none"
+                            stroke="#3b82f6"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="chart-line"
+                        />
+
+                        <!-- Puntos con tooltips -->
+                        <g v-for="(d, i) in ventasData" :key="'dot-' + i">
+                            <!-- Círculo exterior de hover (más grande) -->
+                            <circle
+                                :cx="xPos(i)"
+                                :cy="yPos(d.total)"
+                                r="12"
+                                fill="transparent"
+                                class="cursor-pointer"
+                            />
+                            <!-- Círculo visible -->
+                            <circle
+                                :cx="xPos(i)"
+                                :cy="yPos(d.total)"
+                                :r="d.total > 0 ? 5 : 3"
+                                :fill="d.total > 0 ? '#3b82f6' : '#4b5563'"
+                                :stroke="d.total > 0 ? '#1e40af' : '#374151'"
+                                :stroke-width="d.total > 0 ? 2.5 : 1.5"
+                                class="cursor-pointer chart-dot"
+                            >
+                                <title>
+                                    {{ formatFechaDDMM(d.fecha) }} | {{ d.total }} ventas | S/ {{ Number(d.monto).toFixed(2) }}
+                                </title>
+                            </circle>
+                            <!-- Tooltip al hover (usando SVG title + grupo visible) -->
+                            <g
+                                class="chart-tooltip"
+                                style="pointer-events: none;"
+                            >
+                                <rect
+                                    :x="xPos(i) - 45"
+                                    :y="yPos(d.total) - 32"
+                                    width="90"
+                                    height="24"
+                                    rx="4"
+                                    fill="#1f2937"
+                                    stroke="#374151"
+                                    stroke-width="1"
+                                    opacity="0"
+                                />
+                                <text
+                                    :x="xPos(i)"
+                                    :y="yPos(d.total) - 16"
+                                    text-anchor="middle"
+                                    fill="#e5e7eb"
+                                    font-size="10"
+                                    font-weight="600"
+                                    opacity="0"
+                                >
+                                    S/ {{ Number(d.monto).toFixed(2) }}
+                                </text>
+                            </g>
+                            <!-- Etiqueta del valor sobre el punto -->
+                            <text
+                                v-if="d.total > 0"
+                                :x="xPos(i)"
+                                :y="yPos(d.total) - 12"
+                                text-anchor="middle"
+                                fill="#d1d5db"
+                                font-size="10"
+                                font-weight="600"
+                            >
+                                {{ d.total }}
+                            </text>
+                        </g>
+
+                        <!-- Eje X — fechas (más legibles) -->
+                        <text
+                            v-for="(d, i) in ventasData"
+                            :key="'x-' + i"
+                            :x="xPos(i)"
+                            :y="chartHeight - 8"
+                            text-anchor="middle"
+                            fill="#9ca3af"
+                            font-size="10"
+                            font-weight="500"
+                        >
+                            {{ formatDate(d.fecha) }}
+                        </text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Donut chart: Productos por estado -->
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
+                <h3 class="mb-1 text-base font-semibold text-white">Productos por Estado</h3>
+                <p class="mb-6 text-sm text-gray-400">Activos vs Inactivos</p>
+
+                <div class="flex items-center justify-center gap-8">
+                    <svg width="120" height="120" viewBox="0 0 100 100">
+                        <!-- Background circle -->
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#374151"
+                            stroke-width="10"
+                        />
+                        <!-- Active segment -->
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke="#10b981"
+                            stroke-width="10"
+                            stroke-linecap="round"
+                            :stroke-dasharray="donutCircumference"
+                            :stroke-dashoffset="donutOffset"
+                            transform="rotate(-90 50 50)"
+                            class="transition-all duration-700"
+                        />
+                        <!-- Center text -->
+                        <text x="50" y="48" text-anchor="middle" class="text-lg font-bold" fill="#f3f4f6" font-size="14">
+                            {{ productosPorEstado.activos }}
+                        </text>
+                        <text x="50" y="62" text-anchor="middle" fill="#9ca3af" font-size="8">
+                            activos
+                        </text>
+                    </svg>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <span class="h-3 w-3 rounded-full bg-emerald-500" />
+                            <div>
+                                <p class="text-sm text-gray-300">Activos</p>
+                                <p class="text-xs text-gray-500">{{ productosPorEstado.activos }} productos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="h-3 w-3 rounded-full bg-gray-500" />
+                            <div>
+                                <p class="text-sm text-gray-300">Inactivos</p>
+                                <p class="text-xs text-gray-500">{{ productosPorEstado.inactivos }} productos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Productos + Filtro de fechas -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6 card-shadow">
+            <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h3 class="text-base font-semibold text-white">Top Productos Más Vendidos</h3>
+                    <p class="text-sm text-gray-400">Productos con más ventas en el rango seleccionado</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <span class="text-xs font-medium text-gray-400">Filtrar por rango</span>
+                    <div class="flex items-end gap-3">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-500">Desde</label>
+                            <input
+                                v-model="fechaInicioModel"
+                                type="date"
+                                class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-500">Hasta</label>
+                            <input
+                                v-model="fechaFinModel"
+                                type="date"
+                                class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-200 focus:border-blue-500 focus:outline-none"
+                            />
+                        </div>
+                        <button
+                            class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                            @click="reloadWithDates"
+                        >
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm" v-if="topProductos.length > 0">
+                    <thead>
+                        <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                            <th class="pb-3 pr-4 font-medium">#</th>
+                            <th class="pb-3 pr-4 font-medium">Producto</th>
+                            <th class="pb-3 pr-4 font-medium">SKU</th>
+                            <th class="pb-3 pr-4 font-medium text-right">Cantidad Vendida</th>
+                            <th class="pb-3 pr-4 font-medium text-right">Monto Total (S/)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            v-for="(item, i) in topProductos"
+                            :key="item.sku"
+                            class="border-b border-gray-800/50"
+                        >
+                            <td class="py-3 pr-4 text-gray-500">{{ i + 1 }}</td>
+                            <td class="py-3 pr-4 text-white font-medium">{{ item.nombre_comercial }}</td>
+                            <td class="py-3 pr-4 text-gray-400">{{ item.sku }}</td>
+                            <td class="py-3 pr-4 text-right text-white">{{ item.total_vendido }}</td>
+                            <td class="py-3 pr-4 text-right text-emerald-400 font-medium">
+                                S/ {{ Number(item.total_monto).toFixed(2) }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div v-else class="py-8 text-center text-sm text-gray-500">
+                    No hay ventas registradas en este rango de fechas.
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Stock Bajo -->
+        <Teleport to="body">
+            <div
+                v-if="showStockBajoModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                @click.self="showStockBajoModal = false"
+            >
+                <div class="w-full max-w-2xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Stock Bajo</h3>
+                            <p class="text-sm text-gray-400">
+                                Productos con menos de 10 unidades disponibles
+                                <span v-if="stockAgotado > 0" class="text-red-400">({{ stockAgotado }} agotados)</span>
+                            </p>
+                        </div>
+                        <button
+                            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
+                            @click="showStockBajoModal = false"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto p-6">
+                        <!-- Agotados -->
+                        <div v-if="stockAgotadoProductos.length > 0" class="mb-6">
+                            <h4 class="mb-3 text-sm font-semibold text-red-400">
+                                Agotados ({{ stockAgotadoProductos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Cantidad</th>
+                                        <th class="pb-2 font-medium">Lote</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, i) in stockAgotadoProductos"
+                                        :key="i"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
+                                        <td class="py-2 pr-4">
+                                            <span class="font-medium text-red-400">{{ item.cantidad }}</span>
+                                        </td>
+                                        <td class="py-2 text-gray-400">{{ item.lote }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Stock bajo -->
+                        <div v-if="stockBajoProductos.length > 0">
+                            <h4 class="mb-3 text-sm font-semibold text-amber-400">
+                                Stock Bajo ({{ stockBajoProductos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Cantidad</th>
+                                        <th class="pb-2 font-medium">Lote</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="(item, i) in stockBajoProductos"
+                                        :key="i"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-white">{{ item.producto }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ item.sku }}</td>
+                                        <td class="py-2 pr-4">
+                                            <span class="font-medium text-amber-400">{{ item.cantidad }}</span>
+                                        </td>
+                                        <td class="py-2 text-gray-400">{{ item.lote }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            v-if="stockBajoProductos.length === 0 && stockAgotadoProductos.length === 0"
+                            class="py-8 text-center text-sm text-gray-500"
+                        >
+                            No hay productos con stock bajo.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Modal: Productos por Vencer -->
+        <Teleport to="body">
+            <div
+                v-if="showVencerModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                @click.self="showVencerModal = false"
+            >
+                <div class="w-full max-w-2xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Productos por Vencer</h3>
+                            <p class="text-sm text-gray-400">Productos próximos a vencer y vencidos</p>
+                        </div>
+                        <button
+                            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
+                            @click="showVencerModal = false"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto p-6">
+                        <!-- Vencidos -->
+                        <div v-if="productosVencidos.length > 0" class="mb-6">
+                            <h4 class="mb-3 text-sm font-semibold text-red-400">
+                                Vencidos ({{ productosVencidos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
+                                        <th class="pb-2 pr-4 font-medium">Vence</th>
+                                        <th class="pb-2 font-medium">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="p in productosVencidos"
+                                        :key="p.sku + (p.lote ?? '')"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
+                                        <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400 font-mono text-xs">{{ p.lote ?? '-' }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
+                                        <td class="py-2">
+                                            <span class="font-medium text-red-400">Vencido</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Próximos a vencer -->
+                        <div v-if="productosProximos.length > 0">
+                            <h4 class="mb-3 text-sm font-semibold text-amber-400">
+                                Próximos a Vencer ({{ productosProximos.length }})
+                            </h4>
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="border-b border-gray-800 text-left text-xs uppercase text-gray-500">
+                                        <th class="pb-2 pr-4 font-medium">SKU</th>
+                                        <th class="pb-2 pr-4 font-medium">Producto</th>
+                                        <th class="pb-2 pr-4 font-medium">Lote</th>
+                                        <th class="pb-2 pr-4 font-medium">Vence</th>
+                                        <th class="pb-2 font-medium">Días</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="p in productosProximos"
+                                        :key="p.sku + (p.lote ?? '')"
+                                        class="border-b border-gray-800/50"
+                                    >
+                                        <td class="py-2 pr-4 text-gray-400">{{ p.sku }}</td>
+                                        <td class="py-2 pr-4 text-white">{{ p.nombre_comercial }}</td>
+                                        <td class="py-2 pr-4 text-gray-400 font-mono text-xs">{{ p.lote ?? '-' }}</td>
+                                        <td class="py-2 pr-4 text-gray-400">{{ formatFechaDDMM(p.fecha_vencimiento) }}</td>
+                                        <td class="py-2">
+                                            <span :class="['font-medium', diasColor(p.dias_restantes)]">
+                                                {{ diasLabel(p.dias_restantes) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            v-if="productosPorVencer.length === 0"
+                            class="py-8 text-center text-sm text-gray-500"
+                        >
+                            No hay productos próximos a vencer.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+    </AppPageShell>
+</template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
+/* Animación de dibujado de línea */
+.chart-line {
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: draw-line 1.5s ease-out forwards;
+}
+
+@keyframes draw-line {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Puntos con efecto pulse */
+.chart-dot {
+    transition: r 0.2s ease, filter 0.2s ease;
+}
+
+.chart-dot:hover {
+    filter: brightness(1.3);
+}
+
+/* Tooltip hover para cada punto */
+g:hover > .chart-tooltip rect,
+g:hover > .chart-tooltip text {
+    opacity: 1 !important;
+    transition: opacity 0.15s ease;
+}
+
+/* Mejora general de cards y sombras */
+.card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
+.chart-area {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+</style>

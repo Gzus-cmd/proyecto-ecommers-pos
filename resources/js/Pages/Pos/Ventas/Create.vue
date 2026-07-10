@@ -1,0 +1,578 @@
+<script setup lang="ts">
+/**
+ * Ventas/Create.vue
+ *
+ * Página de registro de nueva venta. Interfaz completa con:
+ * - Selección de productos vía modal con búsqueda
+ * - Asignación de lotes disponibles para cada producto
+ * - Selección/búsqueda de clientes con creación rápida por DNI
+ * - Selección de método de pago
+ * - Cálculo automático de subtotal, impuesto (18%) y total
+ * - Validación de productos con receta médica (requieren DNI)
+ * Envía POST a 'pos.ventas.store'.
+ *
+ * Props:
+ * - productos: Lista de productos disponibles para vender
+ * - metodosPago: Lista de métodos de pago activos
+ * - clientes: Lista de clientes registrados
+ * - lotes: Lista de lotes con stock disponible
+ */
+import { ref, computed } from 'vue';
+import { useForm, router, usePage } from '@inertiajs/vue3';
+import { route } from '@/lib/route';
+import AppPageShell from '@/Components/pos/AppPageShell.vue';
+import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
+import Card from '@/Components/pos/ui/Card.vue';
+import Select from '@/Components/pos/ui/Select.vue';
+import Button from '@/Components/pos/ui/Button.vue';
+import { toast } from 'vue-sonner';
+import type { ProductoLocal, MetodoPago, Cliente, LoteLocal } from '@/types';
+
+const props = defineProps<{
+    productos: ProductoLocal[];
+    metodosPago: MetodoPago[];
+    clientes: Cliente[];
+    lotes: LoteLocal[];
+}>();
+
+/** Representa una línea de detalle en el formulario de venta */
+interface DetalleForm {
+    producto_sku: string;
+    lote_local_id: number | '';
+    cantidad: number;
+    precio_unitario: number;
+    subtotal: number;
+}
+
+const form = useForm({
+    cliente_id: '',
+    metodo_pago_id: '',
+    detalles: [] as DetalleForm[],
+    subtotal: 0,
+    impuesto: 0,
+    total: 0,
+    nuevo_cliente_dni: '',
+});
+
+// --- Filtro de clientes ---
+const dniSearch = ref('');
+const clientesList = ref<Cliente[]>([...props.clientes]);
+
+/** Clientes filtrados por búsqueda de DNI, nombres o apellidos */
+const filteredClientes = computed(() => {
+    if (!dniSearch.value) return clientesList.value;
+    const q = dniSearch.value.toLowerCase();
+    return clientesList.value.filter(
+        (c) =>
+            (c.dni && c.dni.toLowerCase().includes(q)) ||
+            (c.nombres && c.nombres.toLowerCase().includes(q)) ||
+            (c.apellidos && c.apellidos.toLowerCase().includes(q)),
+    );
+});
+
+/** Indica si el formulario tiene datos válidos para enviar */
+const formValido = computed(() => {
+    if (form.detalles.length === 0) return false;
+    if (!form.metodo_pago_id) return false;
+    const invalido = form.detalles.some((d, i) => {
+        if (!d.lote_local_id) return true;
+        if (d.cantidad < 1) return true;
+        if (d.cantidad > loteStock(i)) return true;
+        return false;
+    });
+    return !invalido;
+});
+
+/** Indica si algún producto en los detalles requiere receta médica */
+const productosRequierenReceta = computed(() =>
+    form.detalles.some((d) => {
+        const p = props.productos.find((p) => p.sku === d.producto_sku);
+        return p?.requiere_receta ?? false;
+    }),
+);
+
+// --- Creación rápida de cliente ---
+const showNuevoClienteForm = ref(false);
+const nuevoClienteDni = ref('');
+const creandoCliente = ref(false);
+
+/** Crea un nuevo cliente por DNI o lo selecciona si ya existe */
+async function crearYSeleccionarCliente() {
+    const dni = nuevoClienteDni.value.trim();
+    if (dni.length !== 8) {
+        toast.error('El DNI debe tener 8 dígitos');
+        return;
+    }
+
+    // Verificar si ya existe
+    const existe = clientesList.value.find((c) => c.dni === dni);
+    if (existe) {
+        form.cliente_id = String(existe.id);
+        showNuevoClienteForm.value = false;
+        nuevoClienteDni.value = '';
+        toast.success('Cliente encontrado y seleccionado');
+        return;
+    }
+
+    // Agregar el nuevo cliente a la lista para enviarlo con la venta
+    const tempId = -Date.now();
+    clientesList.value.push({ id: tempId, dni, nombres: '', apellidos: '', telefono: null, email: null });
+    form.cliente_id = String(tempId);
+    form.nuevo_cliente_dni = dni;
+    showNuevoClienteForm.value = false;
+    nuevoClienteDni.value = '';
+    toast.success('Cliente registrado y seleccionado');
+}
+
+/** Cancela el formulario de creación rápida de cliente */
+function cancelarNuevoCliente() {
+    showNuevoClienteForm.value = false;
+    nuevoClienteDni.value = '';
+}
+
+// --- Modal de productos ---
+const showProductModal = ref(false);
+const productSearch = ref('');
+const selectedSku = ref('');
+
+/** Productos filtrados por búsqueda en el modal */
+const filteredProductos = computed(() => {
+    if (!productSearch.value) return props.productos;
+    const q = productSearch.value.toLowerCase();
+    return props.productos.filter(
+        (p) =>
+            p.sku.toLowerCase().includes(q) ||
+            p.nombre_comercial.toLowerCase().includes(q),
+    );
+});
+
+/** Abre el modal de selección de productos */
+function openProductModal() {
+    productSearch.value = '';
+    selectedSku.value = '';
+    showProductModal.value = true;
+}
+
+/** Obtiene los lotes disponibles para un producto, excluyendo lote ya asignado en otro detalle */
+function lotesPorProducto(sku: string, excludeIdx?: number): LoteLocal[] {
+    const idsEnUso = form.detalles
+        .filter((_, i) => excludeIdx === undefined || i !== excludeIdx)
+        .map((d) => d.lote_local_id)
+        .filter(Boolean);
+    const ahora = new Date();
+    return props.lotes.filter(
+        (l) =>
+            l.sku_producto === sku &&
+            (l as any).stock_actual > 0 &&
+            !idsEnUso.includes(l.id) &&
+            new Date(l.fecha_vencimiento) > ahora,
+    );
+}
+
+/** Calcula el stock total disponible para un SKU */
+function getStockTotal(sku: string): number {
+    return lotesPorProducto(sku).reduce((sum, l) => sum + ((l as any).stock_actual || 0), 0);
+}
+
+/** Agrega un producto seleccionado a la lista de detalles */
+function selectProduct(sku: string) {
+    const producto = props.productos.find((p) => p.sku === sku);
+    if (!producto) return;
+
+    const lotes = lotesPorProducto(sku);
+    if (lotes.length === 0) {
+        toast.error('Producto sin lotes disponibles');
+        return;
+    }
+
+    form.detalles.push({
+        producto_sku: sku,
+        lote_local_id: lotes.length === 1 ? lotes[0].id : '',
+        cantidad: 1,
+        precio_unitario: Number(producto.precio_venta),
+        subtotal: Number(producto.precio_venta),
+    });
+    recalcTotals();
+    showProductModal.value = false;
+}
+
+/** Elimina un producto de la lista de detalles */
+function removeProduct(index: number) {
+    form.detalles.splice(index, 1);
+    recalcTotals();
+}
+
+/** Recalcula el subtotal de un detalle y luego los totales generales */
+function updateSubtotal(index: number) {
+    const d = form.detalles[index];
+    d.subtotal = d.cantidad * d.precio_unitario;
+    recalcTotals();
+}
+
+/** Recalcula subtotal, impuesto (18%) y total general */
+function recalcTotals() {
+    const sub = form.detalles.reduce((acc, d) => acc + d.subtotal, 0);
+    form.subtotal = sub;
+    const imp = sub * 0.18;
+    form.impuesto = Math.round(imp * 100) / 100;
+    form.total = sub + form.impuesto;
+}
+
+/** Retorna el nombre comercial de un producto dado su SKU */
+function getProductName(sku: string): string {
+    const p = props.productos.find((p) => p.sku === sku);
+    return p ? `${p.nombre_comercial} (${p.sku})` : sku;
+}
+
+/** Obtiene el stock actual del lote seleccionado en un detalle */
+function loteStock(idx: number): number {
+    const det = form.detalles[idx];
+    if (!det || !det.lote_local_id) return 0;
+    const lote = props.lotes.find((l) => l.id === det.lote_local_id);
+    return lote ? ((lote as any).stock_actual || 0) : 0;
+}
+
+/** Maneja el cambio de lote seleccionado en un detalle */
+function onLoteChange(idx: number, event: Event) {
+    const loteId = Number((event.target as HTMLSelectElement).value);
+    const det = form.detalles[idx];
+    det.lote_local_id = loteId;
+
+    const lote = props.lotes.find((l) => l.id === loteId);
+    if (lote) {
+        const producto = props.productos.find((p) => p.sku === det.producto_sku);
+        if (producto) {
+            det.precio_unitario = Number(producto.precio_venta);
+        }
+    }
+    updateSubtotal(idx);
+}
+
+/** Maneja el cambio de cantidad en un detalle, limitando al stock disponible */
+function onCantidadChange(idx: number, event: Event) {
+    const target = event.target as HTMLInputElement;
+    let val = Number(target.value);
+    const maxStock = loteStock(idx);
+    if (val > maxStock) val = maxStock;
+    if (val < 1) val = 1;
+    form.detalles[idx].cantidad = val;
+    target.value = String(val);
+    updateSubtotal(idx);
+}
+
+/** Valida y envía el formulario de venta */
+function submit() {
+    if (form.detalles.length === 0) {
+        toast.error('Debe agregar al menos un producto.');
+        return;
+    }
+    if (!form.metodo_pago_id) {
+        toast.error('Debe seleccionar un método de pago.');
+        return;
+    }
+
+    // Validar receta médica: si hay productos con requiere_receta, el cliente debe tener DNI
+    if (productosRequierenReceta.value) {
+        const clienteId = form.cliente_id;
+        if (!clienteId) {
+            toast.error('Productos con receta médica requieren registrar DNI del cliente.');
+            return;
+        }
+        if (Number(clienteId) > 0) {
+            const cliente = props.clientes.find((c) => c.id === Number(clienteId));
+            if (!cliente?.dni) {
+                toast.error('El cliente seleccionado no tiene DNI registrado. Registre un cliente con DNI.');
+                return;
+            }
+        }
+        // Si es cliente nuevo (nuevo_cliente_dni), ya tiene DNI por definición
+    }
+
+    const sinLote = form.detalles.find((d) => !d.lote_local_id);
+    if (sinLote) {
+        toast.error('Debe seleccionar un lote para cada producto.');
+        return;
+    }
+
+    form.post(route('pos.ventas.store'), {
+        onSuccess: () => {
+            toast.success('Venta registrada correctamente');
+        },
+        onError: (errors) => {
+            toast.error('Error al registrar la venta');
+        },
+    });
+}
+</script>
+
+<template>
+    <AppPageShell>
+        <AppPageHeader title="Nueva Venta" description="Registrar una venta">
+            <template #actions>
+                <Button variant="outline" @click="router.visit(route('pos.ventas.index'))">
+                    Cancelar
+                </Button>
+            </template>
+        </AppPageHeader>
+
+        <form @submit.prevent="submit">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <!-- Left: product selection & table -->
+                <div class="lg:col-span-2 space-y-6">
+                    <Card title="Productos">
+                        <template #header>
+                            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                                <h3 class="text-lg font-semibold text-white">Productos</h3>
+                                <Button type="button" size="sm" @click="openProductModal">
+                                    <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Agregar Producto
+                                </Button>
+                            </div>
+                        </template>
+
+                        <div v-if="form.detalles.length === 0" class="py-8 text-center text-sm text-gray-500">
+                            No hay productos agregados. Presiona "Agregar Producto" para empezar.
+                        </div>
+
+                        <template v-else>
+                            <div
+                                v-if="productosRequierenReceta"
+                                class="mx-4 mt-4 rounded-lg border border-amber-500/30 bg-amber-900/10 px-4 py-3 text-sm text-amber-400"
+                            >
+                                ⚠️ Productos con receta médica detectados. Debe registrar un cliente con DNI.
+                            </div>
+
+                            <table class="min-w-full divide-y divide-gray-800">
+                            <thead>
+                                <tr class="text-left text-xs font-medium uppercase tracking-wider text-gray-400">
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3 w-44">Lote</th>
+                                    <th class="px-4 py-3 w-24">Cantidad</th>
+                                    <th class="px-4 py-3 w-28">Precio Unit.</th>
+                                    <th class="px-4 py-3 w-28">Subtotal</th>
+                                    <th class="px-4 py-3 w-16"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-800">
+                                <tr v-for="(det, i) in form.detalles" :key="i" class="hover:bg-gray-800/50">
+                                    <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-300">
+                                        {{ getProductName(det.producto_sku) }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <select
+                                            :value="det.lote_local_id"
+                                            @change="onLoteChange(i, $event)"
+                                            class="w-full rounded-lg border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            <option value="" disabled>Seleccionar lote</option>
+                                            <option
+                                                v-for="l in lotesPorProducto(det.producto_sku, i)"
+                                                :key="l.id"
+                                                :value="l.id"
+                                            >
+                                                {{ l.numero_lote }} — vence: {{ l.fecha_vencimiento }} (disp: {{ (l as any).stock_actual }})
+                                            </option>
+                                        </select>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            :max="loteStock(i)"
+                                            :value="det.cantidad"
+                                            @input="onCantidadChange(i, $event)"
+                                            class="w-20 rounded-lg border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-300">
+                                        S/ {{ det.precio_unitario.toFixed(2) }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-300 font-medium">
+                                        S/ {{ det.subtotal.toFixed(2) }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <button
+                                            type="button"
+                                            class="rounded p-1 text-red-400 hover:bg-red-500/10 transition-colors"
+                                            @click="removeProduct(i)"
+                                        >
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </template>
+                    </Card>
+                </div>
+
+                <!-- Right: cliente, metodo pago, totals -->
+                <div class="space-y-6">
+                    <Card title="Cliente">
+                        <div class="space-y-3">
+                            <!-- Input de búsqueda por DNI / nombre -->
+                            <input
+                                v-model="dniSearch"
+                                type="text"
+                                placeholder="Buscar por DNI o nombre..."
+                                class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+
+                            <!-- Select con clientes filtrados -->
+                            <div class="flex gap-2">
+                                <select
+                                    v-model="form.cliente_id"
+                                    class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">— Sin Cliente —</option>
+                                    <option
+                                        v-for="c in filteredClientes"
+                                        :key="c.id"
+                                        :value="String(c.id)"
+                                    >
+                                        {{ c.dni }} — {{ c.nombres || '' }} {{ c.apellidos || '' }}
+                                    </option>
+                                </select>
+
+                                <button
+                                    v-if="!showNuevoClienteForm"
+                                    type="button"
+                                    class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
+                                    @click="showNuevoClienteForm = true"
+                                >
+                                    + Nuevo
+                                </button>
+                            </div>
+
+                            <!-- Mini formulario: registrar nuevo cliente -->
+                            <div
+                                v-if="showNuevoClienteForm"
+                                class="rounded-lg border border-gray-700 bg-gray-800/50 p-3 space-y-2"
+                            >
+                                <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Registrar Nuevo Cliente</p>
+                                <div class="flex gap-2">
+                                    <input
+                                        v-model="nuevoClienteDni"
+                                        type="text"
+                                        maxlength="8"
+                                        placeholder="DNI"
+                                        class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                                        :disabled="nuevoClienteDni.trim().length !== 8 || creandoCliente"
+                                        @click="crearYSeleccionarCliente"
+                                    >
+                                        <svg v-if="creandoCliente" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                        </svg>
+                                        <span v-else>Crear y Seleccionar</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-600"
+                                        @click="cancelarNuevoCliente"
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card title="Método de Pago">
+                        <Select
+                            v-model="form.metodo_pago_id"
+                            :options="metodosPago.map(m => ({ value: String(m.id), label: m.nombre }))"
+                        />
+                        <p v-if="form.errors.metodo_pago_id" class="mt-1 text-xs text-red-400">{{ form.errors.metodo_pago_id }}</p>
+                    </Card>
+
+                    <Card title="Totales">
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Subtotal</span>
+                                <span class="text-white">S/ {{ form.subtotal.toFixed(2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Impuesto (18%)</span>
+                                <span class="text-white">S/ {{ form.impuesto.toFixed(2) }}</span>
+                            </div>
+                            <div class="border-t border-gray-800 pt-2">
+                                <div class="flex justify-between">
+                                    <span class="font-semibold text-white">Total</span>
+                                    <span class="text-lg font-bold text-blue-400">S/ {{ form.total.toFixed(2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Button type="submit" class="w-full" size="lg" :disabled="!formValido" :loading="form.processing">
+                        <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Registrar Venta
+                    </Button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Product Modal -->
+        <Teleport to="body">
+            <div
+                v-if="showProductModal"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                @click.self="showProductModal = false"
+            >
+                <div class="w-full max-w-xl rounded-xl border border-gray-800 bg-gray-900 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 px-6 py-4">
+                        <h3 class="text-lg font-bold text-white">Agregar Producto</h3>
+                        <button
+                            type="button"
+                            class="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-800 hover:text-white"
+                            @click="showProductModal = false"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-4">
+                        <input
+                            v-model="productSearch"
+                            type="text"
+                            placeholder="Buscar por SKU o nombre..."
+                            class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                        />
+
+                        <div class="max-h-72 overflow-y-auto space-y-1">
+                            <button
+                                v-for="p in filteredProductos"
+                                :key="p.sku"
+                                type="button"
+                                class="w-full text-left rounded-lg px-3 py-2.5 text-sm text-gray-300 transition-colors hover:bg-gray-800"
+                                @click="selectProduct(p.sku)"
+                            >
+                                <span class="font-medium text-white">{{ p.nombre_comercial }}</span>
+                                <span class="ml-2 text-gray-500">{{ p.sku }}</span>
+                                <span class="ml-2 text-emerald-400 text-xs">Stock: {{ getStockTotal(p.sku) }}</span>
+                                <span class="float-right text-blue-400">S/ {{ Number(p.precio_venta).toFixed(2) }}</span>
+                            </button>
+
+                            <div v-if="filteredProductos.length === 0" class="py-6 text-center text-sm text-gray-500">
+                                No se encontraron productos.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+    </AppPageShell>
+</template>

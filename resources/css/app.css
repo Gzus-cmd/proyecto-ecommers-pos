@@ -7,3 +7,34 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Custom scrollbar for main content area */
+main::-webkit-scrollbar {
+    width: 6px;
+}
+main::-webkit-scrollbar-track {
+    background: transparent;
+}
+main::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+}
+main::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
+/* Global custom scrollbar for overflow containers */
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
