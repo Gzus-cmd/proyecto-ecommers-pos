@@ -19,6 +19,7 @@ const columns = [
     { key: 'total', label: 'Total' },
 ];
 
+const showModal = ref(false);
 const fechaInicio = ref('');
 const fechaFin = ref('');
 
@@ -29,6 +30,13 @@ function exportarCsv() {
     const qs = params.toString();
     const url = route('pos.ventas.exportar') + (qs ? `?${qs}` : '');
     window.location.href = url;
+    showModal.value = false;
+}
+
+function abrirModal() {
+    fechaInicio.value = '';
+    fechaFin.value = '';
+    showModal.value = true;
 }
 </script>
 
@@ -36,29 +44,16 @@ function exportarCsv() {
     <AppPageShell>
         <AppPageHeader title="Ventas" description="Historial de ventas realizadas">
             <template #actions>
-                <div class="flex items-center gap-2">
-                    <input
-                        v-model="fechaInicio"
-                        type="date"
-                        class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span class="text-gray-500">—</span>
-                    <input
-                        v-model="fechaFin"
-                        type="date"
-                        class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                        type="button"
-                        class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 shadow-sm transition-colors hover:bg-gray-700"
-                        @click="exportarCsv"
-                    >
-                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.707.293V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Exportar CSV
-                    </button>
-                </div>
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 shadow-sm transition-colors hover:bg-gray-700"
+                    @click="abrirModal"
+                >
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.707.293V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Exportar CSV
+                </button>
                 <Link
                     :href="route('pos.ventas.create')"
                     class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -103,4 +98,46 @@ function exportarCsv() {
             </template>
         </DataTable>
     </AppPageShell>
+
+    <!-- Modal Exportar CSV -->
+    <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+        <div class="w-full max-w-sm rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-2xl">
+            <h3 class="mb-1 text-lg font-bold text-white">Exportar Ventas</h3>
+            <p class="mb-5 text-sm text-gray-400">Seleccioná un rango de fechas para exportar. Si no elegís fechas, se exportan todas las ventas.</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="mb-1 block text-xs font-medium text-gray-500">Desde</label>
+                    <input
+                        v-model="fechaInicio"
+                        type="date"
+                        class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-medium text-gray-500">Hasta</label>
+                    <input
+                        v-model="fechaFin"
+                        type="date"
+                        class="block w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <button
+                    class="rounded-lg border border-gray-700 px-4 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800"
+                    @click="showModal = false"
+                >
+                    Cancelar
+                </button>
+                <button
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                    @click="exportarCsv"
+                >
+                    Exportar
+                </button>
+            </div>
+        </div>
+    </div>
 </template>
