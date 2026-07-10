@@ -4,6 +4,10 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para crear uno o múltiples lotes de producto.
+ * Soporta tanto formulario simple como recepción múltiple (array de lotes).
+ */
 class StoreLoteLocalRequest extends FormRequest
 {
     public function authorize(): bool

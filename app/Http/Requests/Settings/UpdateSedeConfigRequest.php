@@ -6,6 +6,9 @@ namespace App\Http\Requests\Settings;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para actualizar la configuración de la sede en el archivo .env.
+ */
 class UpdateSedeConfigRequest extends FormRequest
 {
     public function authorize(): bool

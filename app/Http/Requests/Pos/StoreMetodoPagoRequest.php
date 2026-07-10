@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para crear un nuevo método de pago.
+ */
 class StoreMetodoPagoRequest extends FormRequest
 {
     public function authorize(): bool

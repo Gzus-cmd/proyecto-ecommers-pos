@@ -5,6 +5,9 @@ namespace App\Http\Requests\Pos;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validación para actualizar un usuario existente del sistema.
+ */
 class UpdateUserRequest extends FormRequest
 {
     public function authorize(): bool

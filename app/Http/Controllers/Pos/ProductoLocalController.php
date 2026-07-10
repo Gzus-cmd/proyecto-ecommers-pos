@@ -8,8 +8,17 @@ use App\Http\Requests\Pos\UpdateProductoLocalRequest;
 use App\Models\ProductoLocal;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la gestión de productos del inventario local.
+ */
 class ProductoLocalController extends Controller
 {
+    /**
+     * Muestra el listado paginado de productos.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -28,11 +37,22 @@ class ProductoLocalController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo producto.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
         return inertia('Pos/Productos/Create');
     }
 
+    /**
+     * Almacena un nuevo producto en la base de datos.
+     *
+     * @param  StoreProductoLocalRequest $request  Datos validados del producto
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreProductoLocalRequest $request)
     {
         ProductoLocal::create($request->validated());
@@ -41,6 +61,12 @@ class ProductoLocalController extends Controller
             ->with('success', 'Producto creado correctamente.');
     }
 
+    /**
+     * Muestra el formulario para editar un producto existente.
+     *
+     * @param  ProductoLocal $producto  Producto a editar
+     * @return \Inertia\Response
+     */
     public function edit(ProductoLocal $producto)
     {
         return inertia('Pos/Productos/Edit', [
@@ -48,6 +74,13 @@ class ProductoLocalController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza un producto existente en la base de datos.
+     *
+     * @param  UpdateProductoLocalRequest $request   Datos validados del producto
+     * @param  ProductoLocal              $producto  Producto a actualizar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateProductoLocalRequest $request, ProductoLocal $producto)
     {
         $producto->update($request->validated());
@@ -56,6 +89,12 @@ class ProductoLocalController extends Controller
             ->with('success', 'Producto actualizado correctamente.');
     }
 
+    /**
+     * Muestra los detalles de un producto específico.
+     *
+     * @param  ProductoLocal $producto  Producto a mostrar
+     * @return \Inertia\Response
+     */
     public function show(ProductoLocal $producto)
     {
         return inertia('Pos/Productos/Show', [
@@ -63,6 +102,12 @@ class ProductoLocalController extends Controller
         ]);
     }
 
+    /**
+     * Elimina un producto si no tiene lotes o detalles de venta asociados.
+     *
+     * @param  ProductoLocal $producto  Producto a eliminar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(ProductoLocal $producto)
     {
         $hasLotes = $producto->lotes()->exists();

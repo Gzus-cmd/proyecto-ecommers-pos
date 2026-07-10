@@ -5,15 +5,25 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
+/**
+ * Middleware que comparte datos globales con todas las respuestas Inertia.
+ * Incluye el usuario autenticado, mensajes flash y configuración de la sede.
+ */
 class HandleInertiaRequests extends Middleware
 {
     /**
-     * The root template that's loaded on the first page visit.
+     * La plantilla raíz que se carga en la primera visita a la página.
+     *
+     * @var string
      */
     protected $rootView = 'app';
 
     /**
-     * Define the props that are shared by default.
+     * Define las propiedades compartidas por defecto con todas las páginas Inertia.
+     * Incluye datos del usuario autenticado, roles, mensajes flash y config de sede.
+     *
+     * @param  Request $request  Petición actual
+     * @return array<string, mixed>
      */
     public function share(Request $request): array
     {

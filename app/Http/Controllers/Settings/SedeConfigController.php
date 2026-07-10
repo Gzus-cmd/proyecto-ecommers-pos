@@ -10,8 +10,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 
+/**
+ * Controlador para la configuración de la sede activa.
+ * Lee y escribe las variables de entorno SEDE_* en el archivo .env.
+ */
 class SedeConfigController extends Controller
 {
+    /**
+     * Muestra el formulario de configuración de la sede.
+     *
+     * @param  Request $request  Petición actual
+     * @return \Inertia\Response
+     */
     public function edit(Request $request)
     {
         return inertia('Settings/SedeConfig', [
@@ -24,6 +34,13 @@ class SedeConfigController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza la configuración de la sede en el archivo .env.
+     * También refresca la caché de configuración de Laravel.
+     *
+     * @param  UpdateSedeConfigRequest $request  Datos validados de la sede
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateSedeConfigRequest $request)
     {
         $data = $request->validated();

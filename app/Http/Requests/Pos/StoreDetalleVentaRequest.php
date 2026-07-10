@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para crear un detalle de venta.
+ */
 class StoreDetalleVentaRequest extends FormRequest
 {
     public function authorize(): bool

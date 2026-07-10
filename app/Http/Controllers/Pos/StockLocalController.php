@@ -6,8 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\LoteLocal;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la consulta del stock actual del inventario local.
+ * Muestra el stock calculado (descontando ventas) de cada lote.
+ */
 class StockLocalController extends Controller
 {
+    /**
+     * Muestra el listado paginado del stock actual de productos.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');

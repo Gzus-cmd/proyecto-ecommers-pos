@@ -9,8 +9,18 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
+/**
+ * Controlador para la gestión de usuarios del sistema.
+ * Incluye asignación de roles mediante Spatie Permission.
+ */
 class UserController extends Controller
 {
+    /**
+     * Muestra el listado paginado de usuarios.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -29,6 +39,11 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo usuario.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
         return inertia('Pos/Users/Create', [
@@ -36,6 +51,12 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Almacena un nuevo usuario y le asigna un rol.
+     *
+     * @param  StoreUserRequest $request  Datos validados del usuario
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreUserRequest $request)
     {
         $user = User::create($request->validated());
@@ -48,6 +69,12 @@ class UserController extends Controller
             ->with('success', 'Usuario creado correctamente.');
     }
 
+    /**
+     * Muestra el formulario para editar un usuario existente.
+     *
+     * @param  User $user  Usuario a editar
+     * @return \Inertia\Response
+     */
     public function edit(User $user)
     {
         $user->load('roles');
@@ -58,6 +85,13 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza un usuario existente y sincroniza su rol.
+     *
+     * @param  UpdateUserRequest $request  Datos validados del usuario
+     * @param  User              $user     Usuario a actualizar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateUserRequest $request, User $user)
     {
         $data = $request->validated();
@@ -76,6 +110,12 @@ class UserController extends Controller
             ->with('success', 'Usuario actualizado correctamente.');
     }
 
+    /**
+     * Desactiva un usuario (no lo elimina físicamente).
+     *
+     * @param  User $user  Usuario a desactivar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(User $user)
     {
         $user->update(['activo' => false]);

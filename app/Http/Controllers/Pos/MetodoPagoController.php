@@ -8,8 +8,17 @@ use App\Http\Requests\Pos\UpdateMetodoPagoRequest;
 use App\Models\MetodoPago;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la gestión de métodos de pago del POS.
+ */
 class MetodoPagoController extends Controller
 {
+    /**
+     * Muestra el listado paginado de métodos de pago.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -26,11 +35,22 @@ class MetodoPagoController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo método de pago.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
         return inertia('Pos/MetodosPago/Create');
     }
 
+    /**
+     * Almacena un nuevo método de pago en la base de datos.
+     *
+     * @param  StoreMetodoPagoRequest $request  Datos validados del método de pago
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreMetodoPagoRequest $request)
     {
         MetodoPago::create($request->validated());
@@ -39,6 +59,12 @@ class MetodoPagoController extends Controller
             ->with('success', 'Método de pago creado correctamente.');
     }
 
+    /**
+     * Muestra el formulario para editar un método de pago existente.
+     *
+     * @param  MetodoPago $metodoPago  Método de pago a editar
+     * @return \Inertia\Response
+     */
     public function edit(MetodoPago $metodoPago)
     {
         return inertia('Pos/MetodosPago/Edit', [
@@ -46,6 +72,13 @@ class MetodoPagoController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza un método de pago existente en la base de datos.
+     *
+     * @param  UpdateMetodoPagoRequest $request     Datos validados del método de pago
+     * @param  MetodoPago              $metodoPago  Método de pago a actualizar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateMetodoPagoRequest $request, MetodoPago $metodoPago)
     {
         $metodoPago->update($request->validated());
@@ -54,6 +87,12 @@ class MetodoPagoController extends Controller
             ->with('success', 'Método de pago actualizado correctamente.');
     }
 
+    /**
+     * Elimina un método de pago si no tiene ventas asociadas.
+     *
+     * @param  MetodoPago $metodoPago  Método de pago a eliminar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(MetodoPago $metodoPago)
     {
         $hasVentas = $metodoPago->ventasFisicas()->exists();

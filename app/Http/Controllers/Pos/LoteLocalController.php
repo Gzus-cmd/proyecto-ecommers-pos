@@ -9,8 +9,17 @@ use App\Models\LoteLocal;
 use App\Models\ProductoLocal;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la gestión de lotes del inventario local.
+ */
 class LoteLocalController extends Controller
 {
+    /**
+     * Muestra el listado paginado de lotes.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -28,6 +37,11 @@ class LoteLocalController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para crear uno o múltiples lotes.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
         $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
@@ -37,6 +51,12 @@ class LoteLocalController extends Controller
         ]);
     }
 
+    /**
+     * Almacena uno o múltiples lotes en la base de datos.
+     *
+     * @param  StoreLoteLocalRequest $request  Datos validados de los lotes
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreLoteLocalRequest $request)
     {
         $data = $request->validated();
@@ -63,6 +83,12 @@ class LoteLocalController extends Controller
             ->with('success', 'Lote creado correctamente.');
     }
 
+    /**
+     * Muestra el formulario para editar un lote existente.
+     *
+     * @param  LoteLocal $lote  Lote a editar
+     * @return \Inertia\Response
+     */
     public function edit(LoteLocal $lote)
     {
         $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
@@ -73,6 +99,13 @@ class LoteLocalController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza un lote existente en la base de datos.
+     *
+     * @param  UpdateLoteLocalRequest $request  Datos validados del lote
+     * @param  LoteLocal              $lote     Lote a actualizar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateLoteLocalRequest $request, LoteLocal $lote)
     {
         $lote->update($request->validated());
@@ -81,6 +114,12 @@ class LoteLocalController extends Controller
             ->with('success', 'Lote actualizado correctamente.');
     }
 
+    /**
+     * Muestra los detalles de un lote específico.
+     *
+     * @param  LoteLocal $lote  Lote a mostrar
+     * @return \Inertia\Response
+     */
     public function show(LoteLocal $lote)
     {
         $lote->load(['producto', 'user']);
@@ -90,6 +129,12 @@ class LoteLocalController extends Controller
         ]);
     }
 
+    /**
+     * Retira el stock de un lote (establece cantidad_disponible en 0).
+     *
+     * @param  LoteLocal $lote  Lote del cual retirar stock
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function retirar(LoteLocal $lote)
     {
         $lote->update(['cantidad_disponible' => 0]);
@@ -98,6 +143,12 @@ class LoteLocalController extends Controller
             ->with('success', 'Stock retirado correctamente.');
     }
 
+    /**
+     * Elimina un lote si no tiene stock asociado.
+     *
+     * @param  LoteLocal $lote  Lote a eliminar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(LoteLocal $lote)
     {
         $hasStock = $lote->stockLocal()->exists();

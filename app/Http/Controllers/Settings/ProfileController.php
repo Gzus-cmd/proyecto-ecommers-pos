@@ -7,8 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
+/**
+ * Controlador para la gestión del perfil del usuario autenticado.
+ */
 class ProfileController extends Controller
 {
+    /**
+     * Muestra el formulario de edición del perfil.
+     *
+     * @param  Request $request  Petición actual
+     * @return \Inertia\Response
+     */
     public function edit(Request $request)
     {
         return inertia('Settings/Profile', [
@@ -16,6 +25,12 @@ class ProfileController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza los datos del perfil (nombre y email).
+     *
+     * @param  Request $request  Datos validados del perfil
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request)
     {
         $user = $request->user();
@@ -31,6 +46,12 @@ class ProfileController extends Controller
             ->with('success', 'Perfil actualizado correctamente.');
     }
 
+    /**
+     * Actualiza la contraseña del usuario autenticado.
+     *
+     * @param  Request $request  Contraseña actual y nueva contraseña
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function updatePassword(Request $request)
     {
         $validated = $request->validate([

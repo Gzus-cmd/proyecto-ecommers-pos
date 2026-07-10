@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para crear un nuevo usuario del sistema.
+ */
 class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool

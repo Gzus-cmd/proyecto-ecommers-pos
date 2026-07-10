@@ -6,8 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\DetalleVenta;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la consulta de detalles de ventas.
+ */
 class DetalleVentaController extends Controller
 {
+    /**
+     * Muestra el listado paginado de detalles de venta.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');

@@ -13,8 +13,17 @@ use App\Models\DetalleVenta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Controlador para la gestión de ventas físicas (transacciones en punto de venta).
+ */
 class VentaFisicaController extends Controller
 {
+    /**
+     * Muestra el listado paginado de ventas.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -34,6 +43,13 @@ class VentaFisicaController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para registrar una nueva venta.
+     * Carga productos activos, métodos de pago, clientes y lotes disponibles.
+     *
+     * @param  Request $request
+     * @return \Inertia\Response
+     */
     public function create(Request $request)
     {
         $productos = ProductoLocal::activos()->orderBy('nombre_comercial')->get();
@@ -51,6 +67,13 @@ class VentaFisicaController extends Controller
         ]);
     }
 
+    /**
+     * Registra una nueva venta y sus detalles en una transacción.
+     * Soporta la creación inline de clientes por DNI.
+     *
+     * @param  StoreVentaFisicaRequest $request  Datos validados de la venta y sus detalles
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(StoreVentaFisicaRequest $request)
     {
         $sedeId = auth()->user()->sede_id ?? 1;
@@ -101,6 +124,12 @@ class VentaFisicaController extends Controller
             ->with('success', 'Venta registrada correctamente.');
     }
 
+    /**
+     * Exporta las ventas en formato CSV, con filtro opcional por fechas.
+     *
+     * @param  Request $request  Filtros de fecha_inicio y fecha_fin
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function exportar(Request $request)
     {
         $ventas = VentaFisica::with(['cliente', 'user', 'detalles.producto'])
@@ -124,6 +153,12 @@ class VentaFisicaController extends Controller
         }, 'ventas-' . now()->format('Y-m-d') . '.csv', ['Content-Type' => 'text/csv']);
     }
 
+    /**
+     * Muestra los detalles de una venta específica.
+     *
+     * @param  VentaFisica $venta  Venta a mostrar
+     * @return \Inertia\Response
+     */
     public function show(VentaFisica $venta)
     {
         $venta->load(['user', 'metodoPago', 'detalles.producto', 'cliente']);

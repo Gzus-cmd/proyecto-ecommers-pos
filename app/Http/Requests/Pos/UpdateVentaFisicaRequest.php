@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para actualizar una venta física existente.
+ */
 class UpdateVentaFisicaRequest extends FormRequest
 {
     public function authorize(): bool

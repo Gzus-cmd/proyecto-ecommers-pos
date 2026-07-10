@@ -10,13 +10,28 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Controlador de autenticación de usuarios.
+ * Maneja el inicio y cierre de sesión vía Inertia.
+ */
 class LoginController extends Controller
 {
+    /**
+     * Muestra el formulario de inicio de sesión.
+     *
+     * @return \Inertia\Response
+     */
     public function create(): Response
     {
         return Inertia::render('Auth/Login');
     }
 
+    /**
+     * Procesa el intento de inicio de sesión.
+     *
+     * @param  LoginRequest $request  Credenciales del usuario
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(LoginRequest $request): RedirectResponse
     {
         $credentials = $request->validated();
@@ -32,6 +47,12 @@ class LoginController extends Controller
         ])->onlyInput('email');
     }
 
+    /**
+     * Cierra la sesión del usuario e invalida la sesión.
+     *
+     * @param  Request $request  Petición actual
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::logout();

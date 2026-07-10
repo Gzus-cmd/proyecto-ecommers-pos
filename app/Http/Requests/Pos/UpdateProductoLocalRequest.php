@@ -5,6 +5,9 @@ namespace App\Http\Requests\Pos;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validación para actualizar un producto local existente.
+ */
 class UpdateProductoLocalRequest extends FormRequest
 {
     public function authorize(): bool

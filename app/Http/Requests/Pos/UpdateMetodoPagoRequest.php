@@ -5,6 +5,9 @@ namespace App\Http\Requests\Pos;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validación para actualizar un método de pago existente.
+ */
 class UpdateMetodoPagoRequest extends FormRequest
 {
     public function authorize(): bool

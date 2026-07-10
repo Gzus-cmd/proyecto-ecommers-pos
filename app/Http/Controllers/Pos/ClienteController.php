@@ -8,8 +8,17 @@ use App\Http\Requests\Pos\UpdateClienteRequest;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador para la gestión de clientes del POS.
+ */
 class ClienteController extends Controller
 {
+    /**
+     * Busca un cliente por su número de DNI.
+     *
+     * @param  Request $request  Contiene el DNI a buscar
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function searchByDni(Request $request)
     {
         $dni = $request->get('dni');
@@ -23,6 +32,12 @@ class ClienteController extends Controller
         return response()->json(['cliente' => $cliente]);
     }
 
+    /**
+     * Muestra el listado paginado de clientes.
+     *
+     * @param  Request $request  Parámetros de búsqueda
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $search = $request->get('search');
@@ -41,11 +56,23 @@ class ClienteController extends Controller
         ]);
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo cliente.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
         return inertia('Pos/Clientes/Create');
     }
 
+    /**
+     * Almacena un nuevo cliente en la base de datos.
+     * Soporta tanto respuestas JSON como redirección Inertia.
+     *
+     * @param  StoreClienteRequest $request  Datos validados del cliente
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
     public function store(StoreClienteRequest $request)
     {
         $cliente = Cliente::create($request->validated());
@@ -58,6 +85,12 @@ class ClienteController extends Controller
             ->with('success', 'Cliente creado correctamente.');
     }
 
+    /**
+     * Muestra el formulario para editar un cliente existente.
+     *
+     * @param  Cliente $cliente  Cliente a editar
+     * @return \Inertia\Response
+     */
     public function edit(Cliente $cliente)
     {
         return inertia('Pos/Clientes/Edit', [
@@ -65,6 +98,13 @@ class ClienteController extends Controller
         ]);
     }
 
+    /**
+     * Actualiza un cliente existente en la base de datos.
+     *
+     * @param  UpdateClienteRequest $request  Datos validados del cliente
+     * @param  Cliente              $cliente  Cliente a actualizar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(UpdateClienteRequest $request, Cliente $cliente)
     {
         $cliente->update($request->validated());
@@ -73,6 +113,12 @@ class ClienteController extends Controller
             ->with('success', 'Cliente actualizado correctamente.');
     }
 
+    /**
+     * Elimina un cliente de la base de datos.
+     *
+     * @param  Cliente $cliente  Cliente a eliminar
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Cliente $cliente)
     {
         $cliente->delete();

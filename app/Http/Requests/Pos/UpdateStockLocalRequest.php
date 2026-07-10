@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para actualizar un registro de stock local.
+ */
 class UpdateStockLocalRequest extends FormRequest
 {
     public function authorize(): bool

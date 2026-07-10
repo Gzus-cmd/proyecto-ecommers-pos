@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para actualizar un lote de producto existente.
+ */
 class UpdateLoteLocalRequest extends FormRequest
 {
     public function authorize(): bool

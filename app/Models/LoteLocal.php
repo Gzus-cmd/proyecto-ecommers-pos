@@ -5,6 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Representa un lote de un producto en el inventario local del POS.
+ *
+ * Controla la trazabilidad por lote: fecha de vencimiento, cantidad disponible
+ * y stock actual calculado (descontando ventas realizadas).
+ *
+ * @property int $id
+ * @property string $sku_producto
+ * @property string $numero_lote
+ * @property string $fecha_vencimiento
+ * @property int $cantidad_disponible
+ * @property int|null $user_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @property-read int $stock_actual
+ * @property-read ProductoLocal $producto
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, DetalleVenta> $detallesVenta
+ * @property-read User|null $user
+ */
 class LoteLocal extends Model
 {
     /** @use HasFactory<\Database\Factories\LoteLocalFactory> */
@@ -30,7 +50,12 @@ class LoteLocal extends Model
         ];
     }
 
-    /** Stock actual calculado: cantidad_disponible - SUM(detalle_ventas.cantidad) */
+    /**
+     * Obtiene el stock actual del lote calculado como la cantidad disponible
+     * menos la suma de cantidades vendidas en detalle_ventas.
+     *
+     * @return int
+     */
     public function getStockActualAttribute(): int
     {
         $vendido = DetalleVenta::where('lote_local_id', $this->id)
@@ -40,16 +65,31 @@ class LoteLocal extends Model
         return $this->cantidad_disponible - (int) $vendido;
     }
 
+    /**
+     * Obtiene el producto asociado a este lote.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function producto()
     {
         return $this->belongsTo(ProductoLocal::class, 'sku_producto', 'sku');
     }
 
+    /**
+     * Obtiene los detalles de venta asociados a este lote.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function detallesVenta()
     {
         return $this->hasMany(DetalleVenta::class, 'lote_local_id');
     }
 
+    /**
+     * Obtiene el usuario que registró este lote.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
         return $this->belongsTo(User::class);

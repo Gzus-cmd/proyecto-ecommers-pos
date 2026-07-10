@@ -4,6 +4,9 @@ namespace App\Http\Requests\Pos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validación para crear una nueva sede.
+ */
 class StoreSedeRequest extends FormRequest
 {
     public function authorize(): bool

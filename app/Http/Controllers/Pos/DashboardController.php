@@ -9,8 +9,19 @@ use App\Models\ProductoLocal;
 use App\Models\VentaFisica;
 use Illuminate\Http\Request;
 
+/**
+ * Controlador del dashboard principal del POS.
+ * Proporciona métricas en tiempo real: ventas del día, stock bajo,
+ * productos por vencer, top ventas y gráficos por día.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Muestra el dashboard con las métricas del sistema.
+     *
+     * @param  Request $request  Filtros opcionales de fecha_inicio y fecha_fin
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $totalProductos = ProductoLocal::count();
