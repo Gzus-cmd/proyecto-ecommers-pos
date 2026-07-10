@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Login.vue
+ *
+ * Página de inicio de sesión del POS. Renderiza un formulario con campos de
+ * correo electrónico, contraseña y "recordar sesión". Al enviar, realiza una
+ * petición POST a la ruta 'login.store' usando Inertia.
+ *
+ * Props implícitas (desde Inertia/Laravel):
+ * - sede.nombre — Nombre de la sede activa (se muestra en el encabezado)
+ */
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import Button from '@/Components/pos/ui/Button.vue';
 import { route } from '@/lib/route';
@@ -11,6 +21,7 @@ const form = useForm({
     remember: false,
 });
 
+/** Envía el formulario de inicio de sesión */
 function submit() {
     form.post(route('login.store'), {
         onError: () => {

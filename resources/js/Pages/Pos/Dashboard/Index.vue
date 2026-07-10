@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Dashboard/Index.vue
+ *
+ * Página principal del Dashboard del POS. Muestra tarjetas de resumen
+ * (total productos, ventas hoy, productos por vencer, stock bajo),
+ * gráfico de ventas por día (SVG), gráfico de donut de productos por
+ * estado, y tabla de top productos más vendidos con filtro de fechas.
+ *
+ * Props: todas las métricas son inyectadas desde el backend como props
+ * de Inertia (paginated data no aplica aquí, son agregaciones).
+ */
 import { ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -66,19 +77,27 @@ const props = withDefaults(defineProps<{
     fechaFin: '',
 });
 
+/** Controla la visibilidad del modal de productos por vencer */
 const showVencerModal = ref(false);
+/** Controla la visibilidad del modal de stock bajo */
 const showStockBajoModal = ref(false);
 
 const fechaInicioModel = ref(props.fechaInicio);
 const fechaFinModel = ref(props.fechaFin);
 
+/** Productos cuya fecha de vencimiento ya pasó */
 const productosVencidos = computed(() =>
     (props.productosPorVencer ?? []).filter((p) => p.dias_restantes <= 0),
 );
+/** Productos que vencen en el futuro */
 const productosProximos = computed(() =>
     (props.productosPorVencer ?? []).filter((p) => p.dias_restantes > 0),
 );
 
+/**
+ * Retorna la clase de color según los días restantes.
+ * @param dias - Días hasta el vencimiento (puede ser negativo)
+ */
 function diasColor(dias: number): string {
     if (dias <= 0) return 'text-red-400';
     if (dias <= 30) return 'text-orange-400';
@@ -86,12 +105,17 @@ function diasColor(dias: number): string {
     return 'text-emerald-400';
 }
 
+/**
+ * Retorna la etiqueta legible según los días restantes.
+ * @param dias - Días hasta el vencimiento
+ */
 function diasLabel(dias: number): string {
     if (dias <= 0) return 'Vencido';
     if (dias === 1) return '1 día';
     return `${dias} días`;
 }
 
+/** Recarga el dashboard aplicando el filtro de fechas seleccionado */
 function reloadWithDates() {
     router.get(
         route('pos.dashboard'),
@@ -103,6 +127,7 @@ function reloadWithDates() {
     );
 }
 
+/** Tarjetas de métricas del dashboard con su configuración visual */
 const cards = computed(() => [
     {
         label: 'Total Productos',
@@ -134,7 +159,9 @@ const cards = computed(() => [
     },
 ]);
 
+/** Total de productos (activos + inactivos) para el gráfico donut */
 const totalProductos = computed(() => (props.productosPorEstado?.activos ?? 0) + (props.productosPorEstado?.inactivos ?? 0));
+/** Porcentaje de productos activos para el arco del donut */
 const donutPercentage = computed(() =>
     totalProductos.value > 0 ? ((props.productosPorEstado?.activos ?? 0) / totalProductos.value) * 100 : 0,
 );
@@ -142,37 +169,43 @@ const donutCircumference = 2 * Math.PI * 40;
 const donutOffset = computed(() => donutCircumference - (donutPercentage.value / 100) * donutCircumference);
 
 const ventasData = computed(() => props.ventasPorDia ?? []);
+/** Valor máximo de ventas (número de ventas) para escalar el eje Y */
 const maxVentas = computed(() => {
     const values = ventasData.value.map((d) => d.total);
     return values.length > 0 ? Math.max(...values) : 1;
 });
+/** Valor máximo de montos para escalar (actualmente no usado en gráfico) */
 const maxMonto = computed(() => {
     const values = ventasData.value.map((d) => d.monto);
     return values.length > 0 ? Math.max(...values) : 1;
 });
+/** Ancho dinámico del gráfico SVG según la cantidad de datos */
 const chartWidth = computed(() => Math.max(ventasData.value.length * 70, 520));
 const chartHeight = 260;
 const padding = { top: 30, right: 20, bottom: 40, left: 50 };
 const plotW = computed(() => chartWidth.value - padding.left - padding.right);
 const plotH = computed(() => chartHeight - padding.top - padding.bottom);
 
+/** Posición X de un punto en el gráfico según su índice */
 function xPos(i: number): number {
     return ventasData.value.length > 1
         ? padding.left + (i / (ventasData.value.length - 1)) * plotW.value
         : padding.left + plotW.value / 2;
 }
 
+/** Posición Y de un punto en el gráfico según el valor */
 function yPos(total: number): number {
     return padding.top + plotH.value - (total / (maxVentas.value || 1)) * plotH.value;
 }
 
+/** Genera la cadena de puntos para la polyline del gráfico de ventas */
 function linePoints(): string {
     return ventasData.value
         .map((d, i) => `${xPos(i)},${yPos(d.total)}`)
         .join(' ');
 }
 
-// Generar etiquetas para el eje Y (valores representativos)
+/** Etiquetas del eje Y con valores representativos espaciados uniformemente */
 const yLabels = computed(() => {
     const max = maxVentas.value;
     const steps = 5;
@@ -184,18 +217,21 @@ const yLabels = computed(() => {
     return labels;
 });
 
+/** Formatea una fecha a día de la semana abreviado (ej. "lun", "mar") */
 function formatDate(fecha: string): string {
     if (!fecha) return '';
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es', { weekday: 'short' });
 }
 
+/** Formatea una fecha al formato local peruano (DD/MM/AAAA) */
 function formatFechaDDMM(fecha: string): string {
     if (!fecha) return '';
     const d = new Date(fecha + 'T00:00:00');
     return d.toLocaleDateString('es-PE');
 }
 
+/** Maneja el click en una tarjeta clickeable para abrir su modal */
 function cardClicked(card: ReturnType<typeof cards.value>[0]) {
     if (card.label === 'Productos por Vencer') {
         showVencerModal.value = true;

@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * Input.vue
+ *
+ * Componente de campo de entrada de texto reutilizable.
+ * Soporta v-model, etiqueta, mensaje de error, tipos HTML y
+ * estado deshabilitado. Estilo oscuro consistente con el tema POS.
+ *
+ * Props:
+ * - modelValue: Valor actual del input
+ * - label: Etiqueta sobre el campo (opcional)
+ * - error: Mensaje de error (opcional, cambia borde a rojo)
+ * - type: Tipo HTML del input (text, email, password, number, date, etc.)
+ * - placeholder: Texto placeholder
+ * - disabled: Deshabilita el campo
+ *
+ * Emits:
+ * - update:modelValue: Se dispara al escribir en el campo
+ */
 import { computed } from 'vue';
 
 const props = withDefaults(

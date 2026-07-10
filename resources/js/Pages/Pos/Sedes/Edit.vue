@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Sedes/Edit.vue
+ *
+ * Página para editar una sede existente. Precarga los datos de la sede
+ * recibida por props y permite modificar código, nombre, dirección,
+ * teléfono y estado. Envía PUT a 'pos.sedes.update'.
+ *
+ * Props:
+ * - sede: Objeto Sede con los datos actuales
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -21,6 +31,7 @@ const form = useForm({
     activo: props.sede.activo,
 });
 
+/** Envía el formulario para actualizar la sede */
 function submit() {
     form.put(route('pos.sedes.update', props.sede.id), {
         onSuccess: () => {

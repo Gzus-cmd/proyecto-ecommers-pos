@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Clientes/Index.vue
+ *
+ * Página de listado de clientes. Muestra tabla paginada con DNI,
+ * nombres, apellidos, teléfono y email. Permite buscar, editar y
+ * eliminar clientes (solo admin).
+ *
+ * Props:
+ * - clientes: Datos paginados de clientes (PaginatedData<Cliente>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -16,12 +27,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** ID del cliente que se intenta eliminar (null = sin confirmación activa) */
 const deleteId = ref<number | null>(null);
 
+/** Abre el diálogo de confirmación para eliminar un cliente */
 function confirmDelete(id: number) {
     deleteId.value = id;
 }
 
+/** Ejecuta la eliminación del cliente confirmado */
 function handleDelete() {
     if (deleteId.value) {
         router.delete(route('pos.clientes.destroy', deleteId.value), {
@@ -38,6 +52,7 @@ function handleDelete() {
     }
 }
 
+/** Lee y muestra mensajes flash del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -45,6 +60,7 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/** Columnas de la tabla de clientes */
 const columns = [
     { key: 'dni', label: 'DNI' },
     { key: 'nombres', label: 'Nombres' },

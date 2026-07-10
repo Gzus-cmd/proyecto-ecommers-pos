@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * Badge.vue
+ *
+ * Componente de badge/etiqueta con variantes de color.
+ * Usa class-variance-authority (CVA) para gestionar las variantes.
+ * Útil para mostrar estados, categorías o indicadores.
+ *
+ * Props:
+ * - variant: Estilo visual ('default' | 'success' | 'danger' | 'warning' | 'info')
+ *
+ * Slots:
+ * - default: Contenido del badge (texto)
+ */
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const badgeVariants = cva(

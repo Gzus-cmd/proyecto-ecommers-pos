@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Lotes/Index.vue
+ *
+ * Página de listado de lotes de productos. Muestra tabla paginada con
+ * número de lote, producto, SKU, vencimiento, estado, cantidad y usuario
+ * que registró. Permite buscar, ver detalle, editar y eliminar (solo admin).
+ *
+ * Props:
+ * - lotes: Datos paginados de lotes (PaginatedData<LoteLocal>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -17,12 +28,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** ID del lote que se intenta eliminar (null = sin confirmación activa) */
 const deleteId = ref<number | null>(null);
 
+/** Abre el diálogo de confirmación para eliminar un lote */
 function confirmDelete(id: number) {
     deleteId.value = id;
 }
 
+/** Ejecuta la eliminación del lote confirmado */
 function handleDelete() {
     if (deleteId.value) {
         router.delete(route('pos.lotes.destroy', deleteId.value), {
@@ -39,6 +53,7 @@ function handleDelete() {
     }
 }
 
+/** Lee y muestra mensajes flash del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -46,6 +61,11 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/**
+ * Determina el estado de un lote según su fecha de vencimiento.
+ * @param fecha - Fecha de vencimiento en formato YYYY-MM-DD
+ * @returns Objeto con label, clases CSS y días restantes
+ */
 function getEstadoDias(fecha: string): { label: string; clase: string; dias: number } {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
@@ -57,12 +77,14 @@ function getEstadoDias(fecha: string): { label: string; clase: string; dias: num
     return { label: 'Vigente', clase: 'text-emerald-400 bg-emerald-900/20 border-emerald-800/50', dias: diff };
 }
 
+/** Formatea una fecha al formato local peruano */
 function formatDate(date: string): string {
     if (!date) return '-';
     const d = new Date(date);
     return isNaN(d.getTime()) ? '-' : d.toLocaleDateString('es-PE');
 }
 
+/** Columnas de la tabla de lotes */
 const columns = [
     { key: 'numero_lote', label: 'N° Lote' },
     { key: 'producto', label: 'Producto' },

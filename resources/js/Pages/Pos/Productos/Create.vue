@@ -1,4 +1,12 @@
 <script setup lang="ts">
+/**
+ * Productos/Create.vue
+ *
+ * Página para crear un nuevo producto local. Formulario con campos:
+ * SKU, nombre comercial, nombre genérico, descripción, concentración,
+ * forma farmacéutica, requiere receta, precio de venta y estado.
+ * Envía POST a 'pos.productos.store'.
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -20,6 +28,7 @@ const form = useForm({
     activo: true,
 });
 
+/** Envía el formulario para crear el producto */
 function submit() {
     form.post(route('pos.productos.store'), {
         onSuccess: () => {

@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * ToastNotification.vue
+ *
+ * Sistema de notificaciones toast integrado con mensajes flash de
+ * Inertia. Escucha los cambios en usePage().props.flash y muestra
+ * notificaciones con animación de entrada/salida. Se renderiza en
+ * la esquina superior derecha via Teleport.
+ *
+ * Soporta tipos: success (verde), error (rojo), warning (ámbar).
+ * Las notificaciones se auto-eliminan después de 4 segundos.
+ *
+ * Uso: Se incluye una vez en PosLayout y funciona automáticamente.
+ */
 import { ref, watch, onMounted } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 
@@ -11,6 +24,7 @@ interface Toast {
 const toasts = ref<Toast[]>([]);
 let nextId = 0;
 
+/** Agrega un nuevo toast y programa su eliminación automática */
 function addToast(message: string, type: Toast['type']) {
     const id = nextId++;
     toasts.value.push({ id, message, type });
@@ -19,6 +33,7 @@ function addToast(message: string, type: Toast['type']) {
     }, 4000);
 }
 
+/** Elimina un toast por su ID */
 function removeToast(id: number) {
     const idx = toasts.value.findIndex((t) => t.id === id);
     if (idx !== -1) toasts.value.splice(idx, 1);
@@ -45,6 +60,7 @@ watch(() => usePage().props.flash, () => {
     checkFlash();
 }, { deep: true });
 
+/** Lee los mensajes flash de Inertia y los muestra como toast */
 function checkFlash() {
     const flash = usePage().props.flash as Record<string, string> | undefined;
     if (flash?.success) addToast(flash.success, 'success');

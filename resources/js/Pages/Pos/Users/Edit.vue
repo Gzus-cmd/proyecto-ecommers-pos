@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Users/Edit.vue
+ *
+ * Página para editar un usuario existente. Precarga los datos del usuario
+ * recibido por props. Permite modificar nombre, email, contraseña
+ * (opcional), rol y estado. Envía PUT a 'pos.users.update'.
+ *
+ * Props:
+ * - user: Objeto User con los datos actuales
+ * - roles: Lista de roles disponibles para asignar
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -24,6 +35,7 @@ const form = useForm({
     role: userRole,
 });
 
+/** Envía el formulario para actualizar el usuario */
 function submit() {
     form.put(route('pos.users.update', props.user.id), {
         onSuccess: () => {

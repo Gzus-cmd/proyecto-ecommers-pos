@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * Select.vue
+ *
+ * Componente de selector (dropdown) reutilizable.
+ * Soporta v-model, etiqueta, mensaje de error, y lista de opciones.
+ * Estilo oscuro consistente con el tema POS.
+ *
+ * Props:
+ * - modelValue: Valor actual seleccionado
+ * - label: Etiqueta sobre el select (opcional)
+ * - error: Mensaje de error (opcional)
+ * - disabled: Deshabilita el select
+ * - options: Lista de opciones { value, label }
+ *
+ * Emits:
+ * - update:modelValue: Se dispara al seleccionar una opción
+ */
 import { computed } from 'vue';
 
 const props = withDefaults(

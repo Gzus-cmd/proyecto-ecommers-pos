@@ -1,4 +1,11 @@
 <script setup lang="ts">
+/**
+ * MetodosPago/Create.vue
+ *
+ * Página para crear un nuevo método de pago. Formulario con campos:
+ * nombre, número de cuenta, titular y estado. Envía POST a
+ * 'pos.metodos-pago.store'.
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -15,6 +22,7 @@ const form = useForm({
     activo: true,
 });
 
+/** Envía el formulario para crear el método de pago */
 function submit() {
     form.post(route('pos.metodos-pago.store'), {
         onSuccess: () => {

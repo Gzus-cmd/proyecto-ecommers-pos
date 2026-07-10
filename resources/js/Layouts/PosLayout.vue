@@ -1,10 +1,23 @@
 <script setup lang="ts">
+/**
+ * PosLayout.vue
+ *
+ * Layout principal del módulo POS. Renderiza la barra lateral de navegación
+ * con enlaces a todas las secciones (Dashboard, Usuarios, Clientes, Productos,
+ * Lotes, Ventas, Detalle Ventas, Stock, Sede, Métodos de Pago), el menú de
+ * usuario (perfil/cierre de sesión) y el contenido principal via <slot>.
+ *
+ * También integra el componente ToastNotification para mostrar mensajes de
+ * flash (success/error) desde Inertia.
+ */
 import { ref, computed } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import ToastNotification from '@/Components/pos/ToastNotification.vue';
 
+/** Controla la apertura/cierre del sidebar en mobile */
 const sidebarOpen = ref(false);
+/** Controla el menú desplegable del usuario en el footer */
 const userMenuOpen = ref(false);
 
 const page = usePage<{
@@ -26,6 +39,10 @@ const user = page.props.auth?.user;
 const sedeNombre = page.props.sede?.nombre;
 const isAdmin = computed(() => user?.roles?.includes('admin') ?? false);
 
+/**
+ * Determina si una ruta está activa basándose en la URL actual.
+ * @param routeName - Nombre de la ruta (ej. 'pos.dashboard', 'pos.sedes.index')
+ */
 function isActive(routeName: string): boolean {
     const url = usePage().url;
     const path = url.split('?')[0];
@@ -44,6 +61,7 @@ function isActive(routeName: string): boolean {
     return path.startsWith(prefix);
 }
 
+/** Cierra la sesión del usuario vía POST a la ruta 'logout' */
 function handleLogout() {
     userMenuOpen.value = false;
     router.post(route('logout'));

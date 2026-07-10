@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Ventas/Index.vue
+ *
+ * Página de historial de ventas. Muestra tabla paginada con número de
+ * venta, usuario, fecha y total. Permite ver detalle de cada venta,
+ * exportar a CSV con filtro por rango de fechas, y crear nuevas ventas.
+ *
+ * Props:
+ * - ventas: Datos paginados de ventas (PaginatedData<VentaFisica>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -12,6 +23,7 @@ defineProps<{
     search?: string;
 }>();
 
+/** Columnas de la tabla de ventas */
 const columns = [
     { key: 'id', label: 'N° Venta' },
     { key: 'user', label: 'Usuario' },
@@ -19,10 +31,12 @@ const columns = [
     { key: 'total', label: 'Total' },
 ];
 
+/** Controla la visibilidad del modal de exportación CSV */
 const showModal = ref(false);
 const fechaInicio = ref('');
 const fechaFin = ref('');
 
+/** Genera y descarga el CSV de ventas con filtro de fechas opcional */
 function exportarCsv() {
     const params = new URLSearchParams();
     if (fechaInicio.value) params.set('fecha_inicio', fechaInicio.value);
@@ -33,6 +47,7 @@ function exportarCsv() {
     showModal.value = false;
 }
 
+/** Abre el modal de exportación CSV */
 function abrirModal() {
     fechaInicio.value = '';
     fechaFin.value = '';

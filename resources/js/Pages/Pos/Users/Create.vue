@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * Users/Create.vue
+ *
+ * Página para crear un nuevo usuario del sistema. Formulario con campos:
+ * nombre, email, contraseña, rol y estado. Envía POST a 'pos.users.store'.
+ *
+ * Props:
+ * - roles: Lista de roles disponibles para asignar al usuario
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -20,6 +29,7 @@ const form = useForm({
     role: '',
 });
 
+/** Envía el formulario para crear el usuario */
 function submit() {
     form.post(route('pos.users.store'), {
         onSuccess: () => {

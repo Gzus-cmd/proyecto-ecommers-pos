@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Productos/Index.vue
+ *
+ * Página de listado de productos locales. Muestra tabla paginada con SKU,
+ * nombre comercial, precio de venta, indicador de receta y estado.
+ * Permite buscar, ver detalle, editar y eliminar productos (solo admin).
+ *
+ * Props:
+ * - productos: Datos paginados de productos (PaginatedData<ProductoLocal>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -18,12 +29,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** SKU del producto que se intenta eliminar (null = sin confirmación activa) */
 const deleteSku = ref<string | null>(null);
 
+/** Abre el diálogo de confirmación para eliminar un producto */
 function confirmDelete(sku: string) {
     deleteSku.value = sku;
 }
 
+/** Ejecuta la eliminación del producto confirmado */
 function handleDelete() {
     if (deleteSku.value) {
         router.delete(route('pos.productos.destroy', deleteSku.value), {
@@ -40,6 +54,7 @@ function handleDelete() {
     }
 }
 
+/** Lee y muestra mensajes flash del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -47,6 +62,7 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/** Columnas de la tabla de productos */
 const columns = [
     { key: 'sku', label: 'SKU' },
     { key: 'nombre_comercial', label: 'Nombre Comercial' },

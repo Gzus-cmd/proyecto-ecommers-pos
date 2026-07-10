@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Sedes/Index.vue
+ *
+ * Página de listado de sedes del POS. Muestra una tabla paginada con
+ * columnas: código, nombre, dirección, teléfono y estado. Permite buscar,
+ * editar y eliminar sedes con confirmación.
+ *
+ * Props:
+ * - sedes: Datos paginados de sedes (PaginatedData<Sede>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, onMounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -15,12 +26,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** ID de la sede que se intenta eliminar (null = sin confirmación activa) */
 const deleteId = ref<number | null>(null);
 
+/** Abre el diálogo de confirmación para eliminar una sede */
 function confirmDelete(id: number) {
     deleteId.value = id;
 }
 
+/** Ejecuta la eliminación de la sede confirmada */
 function handleDelete() {
     if (deleteId.value) {
         router.delete(route('pos.sedes.destroy', deleteId.value), {
@@ -37,6 +51,7 @@ function handleDelete() {
     }
 }
 
+/** Lee y muestra mensajes flash provenientes del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -44,6 +59,7 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/** Columnas de la tabla de sedes */
 const columns = [
     { key: 'codigo', label: 'Código' },
     { key: 'nombre', label: 'Nombre' },

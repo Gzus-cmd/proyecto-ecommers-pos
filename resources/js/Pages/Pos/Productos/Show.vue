@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Productos/Show.vue
+ *
+ * Página de detalle de un producto. Muestra toda la información del
+ * producto en una tarjeta: SKU, nombre comercial/genérico, descripción,
+ * concentración, forma farmacéutica, precio, receta y estado.
+ *
+ * Props:
+ * - producto: Objeto ProductoLocal con datos completos
+ */
 import { Link, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';

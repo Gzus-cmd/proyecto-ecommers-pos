@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * AppPageHeader.vue
+ *
+ * Encabezado estándar para páginas del POS. Muestra el título,
+ * descripción opcional, botón de "Volver al listado" y espacio
+ * para acciones adicionales (slot "actions").
+ *
+ * Props:
+ * - title: Título de la página
+ * - description: Descripción corta (opcional)
+ * - backRoute: Nombre de ruta para el botón "Volver" (opcional)
+ *
+ * Slots:
+ * - actions: Botones de acción en la esquina superior derecha
+ */
 import { Link } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 

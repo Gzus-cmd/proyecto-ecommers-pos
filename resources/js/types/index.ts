@@ -1,7 +1,17 @@
+/**
+ * types/index.ts
+ *
+ * Definiciones de tipos TypeScript compartidos en toda la aplicación POS.
+ * Incluye interfaces para las entidades del dominio, datos paginados y
+ * props de página de Inertia.
+ */
+
+/** Props genéricas de página Inertia */
 export interface PageProps {
     [key: string]: unknown;
 }
 
+/** Envoltorio de paginación de Laravel (PaginatedData<T>) */
 export interface PaginatedData<T> {
     data: T[];
     current_page: number;
@@ -17,6 +27,7 @@ export interface PaginatedData<T> {
     }[];
 }
 
+/** Sede / sucursal del POS */
 export interface Sede {
     id: number;
     codigo: string;
@@ -26,6 +37,7 @@ export interface Sede {
     activo: boolean;
 }
 
+/** Método de pago (efectivo, tarjeta, Yape, etc.) */
 export interface MetodoPago {
     id: number;
     nombre: string;
@@ -34,6 +46,7 @@ export interface MetodoPago {
     activo: boolean;
 }
 
+/** Usuario del sistema */
 export interface User {
     id: number;
     name: string;
@@ -43,6 +56,7 @@ export interface User {
     created_at?: string;
 }
 
+/** Cliente registrado en el POS */
 export interface Cliente {
     id: number;
     dni: string;
@@ -52,6 +66,7 @@ export interface Cliente {
     email: string | null;
 }
 
+/** Producto local (inventario propio de la farmacia) */
 export interface ProductoLocal {
     sku: string;
     nombre_comercial: string;
@@ -65,6 +80,7 @@ export interface ProductoLocal {
     activo: boolean;
 }
 
+/** Lote de producto con fecha de vencimiento */
 export interface LoteLocal {
     id: number;
     sku_producto: string;
@@ -76,6 +92,7 @@ export interface LoteLocal {
     user?: User;
 }
 
+/** Venta física registrada en el POS */
 export interface VentaFisica {
     id: number;
     sede_id: number;
@@ -93,6 +110,7 @@ export interface VentaFisica {
     detalles?: DetalleVenta[];
 }
 
+/** Línea de detalle de una venta (producto vendido) */
 export interface DetalleVenta {
     id: number;
     venta_id: number;

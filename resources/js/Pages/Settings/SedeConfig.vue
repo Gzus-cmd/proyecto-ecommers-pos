@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Settings/SedeConfig.vue
+ *
+ * Página de configuración de la sede actual. Permite modificar los
+ * datos de la sede: nombre, código, dirección y teléfono.
+ * Usa PosLayout directamente (no AppPageShell).
+ *
+ * Props:
+ * - config: Objeto con los datos actuales de la sede
+ */
 import { useForm, Head } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import { toast } from 'vue-sonner';
@@ -23,6 +33,7 @@ const form = useForm({
     telefono: props.config.telefono,
 });
 
+/** Guarda la configuración de la sede vía POST */
 function submit() {
     form.post(route('settings.sede.update'), {
         onSuccess: () => {

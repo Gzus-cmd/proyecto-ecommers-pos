@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * Stock/Index.vue
+ *
+ * Página de inventario de stock. Muestra tabla paginada con el stock
+ * calculado por lote: producto, SKU, número de lote, vencimiento,
+ * estado (vigente/por vencer/vencido), cantidad inicial y stock actual.
+ * Permite retirar stock de lotes vencidos.
+ *
+ * Props:
+ * - stock: Datos paginados de stock (PaginatedData<StockRow>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { router } from '@inertiajs/vue3';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -24,6 +36,10 @@ defineProps<{
     search?: string;
 }>();
 
+/**
+ * Determina el estado de un lote según su fecha de vencimiento.
+ * @param row - Fila de stock con fecha_vencimiento
+ */
 function estadoLote(row: StockRow): { label: string; variant: string } {
     const hoy = new Date();
     const vence = new Date(row.fecha_vencimiento + 'T00:00:00');
@@ -34,6 +50,7 @@ function estadoLote(row: StockRow): { label: string; variant: string } {
     return { label: 'Vigente', variant: 'success' };
 }
 
+/** Retira todo el stock de un lote (lo marca como 0) vía POST */
 function retirarStock(loteId: number) {
     if (!confirm('¿Retirar todo el stock de este lote? Se marcará como 0.')) return;
 
@@ -48,6 +65,7 @@ function retirarStock(loteId: number) {
     });
 }
 
+/** Columnas de la tabla de stock */
 const columns = [
     { key: 'producto_nombre', label: 'Producto' },
     { key: 'sku_producto', label: 'SKU' },

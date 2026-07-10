@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * Card.vue
+ *
+ * Componente de tarjeta contenedora con borde, fondo oscuro y sombra.
+ * Soporta título y descripción en el encabezado, con slot "header"
+ * personalizable. El contenido principal va en el slot default.
+ *
+ * Props:
+ * - title: Título de la tarjeta (opcional)
+ * - description: Descripción corta (opcional)
+ *
+ * Slots:
+ * - header: Encabezado personalizado (reemplaza title/description)
+ * - default: Contenido del cuerpo de la tarjeta
+ */
 defineProps<{
     title?: string;
     description?: string;

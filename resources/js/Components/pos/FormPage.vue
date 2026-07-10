@@ -1,4 +1,24 @@
 <script setup lang="ts">
+/**
+ * FormPage.vue
+ *
+ * Layout estándar para páginas de formularios (crear/editar).
+ * Incluye encabezado con AppPageHeader, tarjeta Card con el formulario,
+ * y botones de acción (Cancelar / Guardar o Actualizar).
+ * El formulario emite "submit" al enviarse.
+ *
+ * Props:
+ * - title: Título de la página de formulario
+ * - description: Descripción corta (opcional)
+ * - backRoute: Ruta para el botón Cancelar (opcional)
+ * - isEditing: Muestra "Actualizar" en vez de "Guardar" (opcional)
+ *
+ * Emits:
+ * - submit: Se dispara al enviar el formulario
+ *
+ * Slots:
+ * - default: Campos del formulario
+ */
 import { router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
@@ -16,6 +36,7 @@ const emit = defineEmits<{
     submit: [];
 }>();
 
+/** Navega de vuelta a la ruta anterior (lista) */
 function cancel() {
     router.visit(route(props.backRoute || 'pos.dashboard'));
 }

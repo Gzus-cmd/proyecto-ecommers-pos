@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Lotes/Show.vue
+ *
+ * Página de detalle de un lote. Muestra la información completa del lote:
+ * número, SKU, producto, cantidad disponible, fecha de vencimiento con
+ * badge de estado y usuario que registró.
+ *
+ * Props:
+ * - lote: Objeto LoteLocal con datos completos
+ */
 import { Link, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -13,6 +23,11 @@ defineProps<{
 
 const isAdmin = (usePage().props.auth as any)?.roles?.includes('admin');
 
+/**
+ * Obtiene la información de estado del lote según su fecha de vencimiento.
+ * @param fecha - Fecha de vencimiento en formato YYYY-MM-DD
+ * @returns Objeto con label y variant para el Badge
+ */
 function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'warning' | 'success' } {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
@@ -24,6 +39,7 @@ function getEstadoInfo(fecha: string): { label: string; variant: 'danger' | 'war
     return { label: 'Vigente', variant: 'success' };
 }
 
+/** Formatea una fecha al formato local peruano */
 function formatDate(date: string): string {
     if (!date) return '-';
     const d = new Date(date);

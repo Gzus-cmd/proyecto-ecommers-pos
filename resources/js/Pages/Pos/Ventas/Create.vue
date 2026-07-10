@@ -1,4 +1,22 @@
 <script setup lang="ts">
+/**
+ * Ventas/Create.vue
+ *
+ * Página de registro de nueva venta. Interfaz completa con:
+ * - Selección de productos vía modal con búsqueda
+ * - Asignación de lotes disponibles para cada producto
+ * - Selección/búsqueda de clientes con creación rápida por DNI
+ * - Selección de método de pago
+ * - Cálculo automático de subtotal, impuesto (18%) y total
+ * - Validación de productos con receta médica (requieren DNI)
+ * Envía POST a 'pos.ventas.store'.
+ *
+ * Props:
+ * - productos: Lista de productos disponibles para vender
+ * - metodosPago: Lista de métodos de pago activos
+ * - clientes: Lista de clientes registrados
+ * - lotes: Lista de lotes con stock disponible
+ */
 import { ref, computed } from 'vue';
 import { useForm, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -17,6 +35,7 @@ const props = defineProps<{
     lotes: LoteLocal[];
 }>();
 
+/** Representa una línea de detalle en el formulario de venta */
 interface DetalleForm {
     producto_sku: string;
     lote_local_id: number | '';
@@ -35,10 +54,11 @@ const form = useForm({
     nuevo_cliente_dni: '',
 });
 
-// Client local filter
+// --- Filtro de clientes ---
 const dniSearch = ref('');
 const clientesList = ref<Cliente[]>([...props.clientes]);
 
+/** Clientes filtrados por búsqueda de DNI, nombres o apellidos */
 const filteredClientes = computed(() => {
     if (!dniSearch.value) return clientesList.value;
     const q = dniSearch.value.toLowerCase();
@@ -50,6 +70,7 @@ const filteredClientes = computed(() => {
     );
 });
 
+/** Indica si el formulario tiene datos válidos para enviar */
 const formValido = computed(() => {
     if (form.detalles.length === 0) return false;
     if (!form.metodo_pago_id) return false;
@@ -62,6 +83,7 @@ const formValido = computed(() => {
     return !invalido;
 });
 
+/** Indica si algún producto en los detalles requiere receta médica */
 const productosRequierenReceta = computed(() =>
     form.detalles.some((d) => {
         const p = props.productos.find((p) => p.sku === d.producto_sku);
@@ -69,11 +91,12 @@ const productosRequierenReceta = computed(() =>
     }),
 );
 
-// Quick client creation
+// --- Creación rápida de cliente ---
 const showNuevoClienteForm = ref(false);
 const nuevoClienteDni = ref('');
 const creandoCliente = ref(false);
 
+/** Crea un nuevo cliente por DNI o lo selecciona si ya existe */
 async function crearYSeleccionarCliente() {
     const dni = nuevoClienteDni.value.trim();
     if (dni.length !== 8) {
@@ -101,16 +124,18 @@ async function crearYSeleccionarCliente() {
     toast.success('Cliente registrado y seleccionado');
 }
 
+/** Cancela el formulario de creación rápida de cliente */
 function cancelarNuevoCliente() {
     showNuevoClienteForm.value = false;
     nuevoClienteDni.value = '';
 }
 
-// Product modal
+// --- Modal de productos ---
 const showProductModal = ref(false);
 const productSearch = ref('');
 const selectedSku = ref('');
 
+/** Productos filtrados por búsqueda en el modal */
 const filteredProductos = computed(() => {
     if (!productSearch.value) return props.productos;
     const q = productSearch.value.toLowerCase();
@@ -121,12 +146,14 @@ const filteredProductos = computed(() => {
     );
 });
 
+/** Abre el modal de selección de productos */
 function openProductModal() {
     productSearch.value = '';
     selectedSku.value = '';
     showProductModal.value = true;
 }
 
+/** Obtiene los lotes disponibles para un producto, excluyendo lote ya asignado en otro detalle */
 function lotesPorProducto(sku: string, excludeIdx?: number): LoteLocal[] {
     const idsEnUso = form.detalles
         .filter((_, i) => excludeIdx === undefined || i !== excludeIdx)
@@ -142,10 +169,12 @@ function lotesPorProducto(sku: string, excludeIdx?: number): LoteLocal[] {
     );
 }
 
+/** Calcula el stock total disponible para un SKU */
 function getStockTotal(sku: string): number {
     return lotesPorProducto(sku).reduce((sum, l) => sum + ((l as any).stock_actual || 0), 0);
 }
 
+/** Agrega un producto seleccionado a la lista de detalles */
 function selectProduct(sku: string) {
     const producto = props.productos.find((p) => p.sku === sku);
     if (!producto) return;
@@ -167,17 +196,20 @@ function selectProduct(sku: string) {
     showProductModal.value = false;
 }
 
+/** Elimina un producto de la lista de detalles */
 function removeProduct(index: number) {
     form.detalles.splice(index, 1);
     recalcTotals();
 }
 
+/** Recalcula el subtotal de un detalle y luego los totales generales */
 function updateSubtotal(index: number) {
     const d = form.detalles[index];
     d.subtotal = d.cantidad * d.precio_unitario;
     recalcTotals();
 }
 
+/** Recalcula subtotal, impuesto (18%) y total general */
 function recalcTotals() {
     const sub = form.detalles.reduce((acc, d) => acc + d.subtotal, 0);
     form.subtotal = sub;
@@ -186,11 +218,13 @@ function recalcTotals() {
     form.total = sub + form.impuesto;
 }
 
+/** Retorna el nombre comercial de un producto dado su SKU */
 function getProductName(sku: string): string {
     const p = props.productos.find((p) => p.sku === sku);
     return p ? `${p.nombre_comercial} (${p.sku})` : sku;
 }
 
+/** Obtiene el stock actual del lote seleccionado en un detalle */
 function loteStock(idx: number): number {
     const det = form.detalles[idx];
     if (!det || !det.lote_local_id) return 0;
@@ -198,6 +232,7 @@ function loteStock(idx: number): number {
     return lote ? ((lote as any).stock_actual || 0) : 0;
 }
 
+/** Maneja el cambio de lote seleccionado en un detalle */
 function onLoteChange(idx: number, event: Event) {
     const loteId = Number((event.target as HTMLSelectElement).value);
     const det = form.detalles[idx];
@@ -213,6 +248,7 @@ function onLoteChange(idx: number, event: Event) {
     updateSubtotal(idx);
 }
 
+/** Maneja el cambio de cantidad en un detalle, limitando al stock disponible */
 function onCantidadChange(idx: number, event: Event) {
     const target = event.target as HTMLInputElement;
     let val = Number(target.value);
@@ -224,6 +260,7 @@ function onCantidadChange(idx: number, event: Event) {
     updateSubtotal(idx);
 }
 
+/** Valida y envía el formulario de venta */
 function submit() {
     if (form.detalles.length === 0) {
         toast.error('Debe agregar al menos un producto.');

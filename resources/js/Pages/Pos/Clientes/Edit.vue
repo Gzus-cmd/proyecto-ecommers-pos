@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * Clientes/Edit.vue
+ *
+ * Página para editar un cliente existente. Precarga los datos del
+ * cliente recibido por props. Envía PUT a 'pos.clientes.update'.
+ *
+ * Props:
+ * - cliente: Objeto Cliente con los datos actuales
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -20,6 +29,7 @@ const form = useForm({
     email: props.cliente.email || '',
 });
 
+/** Envía el formulario para actualizar el cliente */
 function submit() {
     form.put(route('pos.clientes.update', props.cliente.id), {
         onSuccess: () => {

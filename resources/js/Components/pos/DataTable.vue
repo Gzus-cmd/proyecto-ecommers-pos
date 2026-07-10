@@ -1,4 +1,34 @@
 <script setup lang="ts">
+/**
+ * DataTable.vue
+ *
+ * Componente de tabla de datos paginada con búsqueda. Estándar para
+ * todas las páginas de listado del POS. Incluye:
+ * - Slot "toolbar" personalizable (por defecto con SearchInput)
+ * - Columnas dinámicas con slots para celdas personalizadas
+ * - Paginación completa con números de página
+ * - Estado vacío cuando no hay registros
+ *
+ * Props:
+ * - columns: Definición de columnas (key, label, sortable?)
+ * - rows: Datos a mostrar
+ * - total: Total de registros
+ * - currentPage: Página actual
+ * - lastPage: Última página
+ * - from: Índice inicial de registros mostrados
+ * - to: Índice final de registros mostrados
+ * - search: Término de búsqueda actual
+ * - baseRoute: Ruta base para navegación de páginas/búsqueda
+ * - searchPlaceholder: Placeholder del campo de búsqueda
+ * - showSearchButton: Muestra botón de búsqueda explícito
+ *
+ * Slots:
+ * - toolbar: Barra de herramientas sobre la tabla
+ * - cell-{key}: Celda personalizada para una columna (recibe {row, value})
+ * - actions: Columna de acciones (recibe {row})
+ * - empty: Contenido cuando no hay registros
+ * - header-actions: Acciones extras en la toolbar
+ */
 import { router } from '@inertiajs/vue3';
 import SearchInput from '@/Components/pos/SearchInput.vue';
 import EmptyState from '@/Components/pos/EmptyState.vue';
@@ -31,12 +61,14 @@ const props = withDefaults(
     },
 );
 
+/** Navega a una URL de paginación preservando el estado y scroll */
 function visit(url: string | null) {
     if (url) {
         router.get(url, { search: props.search || undefined }, { preserveState: true, preserveScroll: true });
     }
 }
 
+/** Ejecuta una búsqueda navegando a la ruta base con el parámetro search */
 function onSearch(value: string) {
     router.get(
         route(props.baseRoute),

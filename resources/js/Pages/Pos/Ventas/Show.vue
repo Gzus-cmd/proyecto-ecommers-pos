@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Ventas/Show.vue
+ *
+ * Página de detalle de una venta. Muestra la información general
+ * (usuario, cliente, método de pago, fecha), los totales (subtotal,
+ * impuesto, total) y la tabla de productos vendidos con cantidades
+ * y precios.
+ *
+ * Props:
+ * - venta: Objeto VentaFisica con datos completos e incluye detalles
+ */
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import Card from '@/Components/pos/ui/Card.vue';

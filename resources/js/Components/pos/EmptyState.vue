@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * EmptyState.vue
+ *
+ * Componente de estado vacío para tablas y listas sin registros.
+ * Muestra un icono de caja vacía, título y descripción opcional.
+ *
+ * Props:
+ * - title: Título del estado vacío (default: "Sin registros")
+ * - description: Descripción adicional (opcional)
+ *
+ * Slots:
+ * - default: Contenido personalizado (reemplaza el texto por defecto)
+ */
 defineProps<{
     title?: string;
     description?: string;

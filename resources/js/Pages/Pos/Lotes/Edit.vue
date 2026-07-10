@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * Lotes/Edit.vue
+ *
+ * Página para editar un lote existente. Precarga los datos del lote
+ * recibido por props. Permite modificar producto, número de lote,
+ * fecha de vencimiento y cantidad disponible. Envía PUT a
+ * 'pos.lotes.update'.
+ *
+ * Props:
+ * - lote: Objeto LoteLocal con datos actuales
+ * - productos: Lista de productos para el select
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -21,6 +33,7 @@ const form = useForm({
     cantidad_disponible: String(props.lote.cantidad_disponible),
 });
 
+/** Envía el formulario para actualizar el lote */
 function submit() {
     form.put(route('pos.lotes.update', props.lote.id), {
         onSuccess: () => {

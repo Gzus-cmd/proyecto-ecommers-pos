@@ -1,4 +1,17 @@
 <script setup lang="ts">
+/**
+ * Toggle.vue
+ *
+ * Componente de interruptor (switch) on/off con etiqueta opcional.
+ * Sigue el patrón v-model para enlace bidireccional.
+ *
+ * Props:
+ * - modelValue: Valor booleano actual del toggle
+ * - label: Etiqueta descriptiva (opcional, se muestra a la derecha)
+ *
+ * Emits:
+ * - update:modelValue: Se dispara al cambiar el estado
+ */
 defineProps<{
     modelValue: boolean;
     label?: string;

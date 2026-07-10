@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Settings/Profile.vue
+ *
+ * Página de configuración del perfil de usuario. Permite actualizar
+ * nombre y correo electrónico, así como cambiar la contraseña.
+ * Usa PosLayout directamente (no AppPageShell).
+ *
+ * Props:
+ * - user: Datos básicos del usuario autenticado (id, name, email)
+ */
 import { useForm, Head } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import { toast } from 'vue-sonner';
@@ -26,6 +36,7 @@ const passwordForm = useForm({
     password_confirmation: '',
 });
 
+/** Actualiza los datos del perfil (nombre y email) vía PUT */
 function updateProfile() {
     form.put(route('settings.profile.update'), {
         onSuccess: () => toast.success('Perfil actualizado'),
@@ -33,6 +44,7 @@ function updateProfile() {
     });
 }
 
+/** Actualiza la contraseña del usuario vía PUT */
 function updatePassword() {
     passwordForm.put(route('settings.profile.password'), {
         onSuccess: () => {

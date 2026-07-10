@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * Sedes/Create.vue
+ *
+ * Página para crear una nueva sede. Presenta un formulario con campos:
+ * código, nombre, dirección, teléfono y estado (activo/inactivo).
+ * Al enviar, realiza POST a 'pos.sedes.store' y redirige.
+ *
+ * Emite: submit → manejado por FormPage que envía el formulario
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -16,6 +25,7 @@ const form = useForm({
     activo: true,
 });
 
+/** Envía el formulario para crear la sede */
 function submit() {
     form.post(route('pos.sedes.store'), {
         onSuccess: () => {

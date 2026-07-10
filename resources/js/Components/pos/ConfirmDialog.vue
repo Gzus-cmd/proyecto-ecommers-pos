@@ -1,4 +1,25 @@
 <script setup lang="ts">
+/**
+ * ConfirmDialog.vue
+ *
+ * Diálogo modal de confirmación. Se renderiza con Teleport al body.
+ * Útil para confirmar acciones destructivas como eliminaciones.
+ * Soporta variantes danger/default, estado de carga y textos
+ * personalizados para botones.
+ *
+ * Props:
+ * - open: Controla la visibilidad del diálogo
+ * - title: Título del diálogo
+ * - message: Mensaje de confirmación
+ * - confirmText: Texto del botón de confirmación
+ * - cancelText: Texto del botón de cancelar
+ * - variant: Estilo visual ('danger' | 'default')
+ * - loading: Muestra estado de carga en botón de confirmar
+ *
+ * Emits:
+ * - confirm: Se dispara al confirmar la acción
+ * - cancel: Se dispara al cancelar o cerrar
+ */
 import Button from '@/Components/pos/ui/Button.vue';
 
 defineProps<{
@@ -16,6 +37,7 @@ const emit = defineEmits<{
     cancel: [];
 }>();
 
+/** Cierra el diálogo si se hace clic en el backdrop (fondo oscuro) */
 function onBackdropClick(e: MouseEvent) {
     if ((e.target as HTMLElement).dataset?.backdrop) {
         emit('cancel');

@@ -1,4 +1,20 @@
 <script setup lang="ts">
+/**
+ * SearchInput.vue
+ *
+ * Componente de entrada de búsqueda con icono. Soporta actualización
+ * v-model y botón opcional de búsqueda explícita (showButton).
+ * Dispara el evento update:modelValue al presionar Enter o al hacer
+ * clic en el botón de búsqueda.
+ *
+ * Props:
+ * - modelValue: Valor actual del campo de búsqueda
+ * - placeholder: Texto placeholder
+ * - showButton: Muestra botón "Buscar" al lado del input
+ *
+ * Emits:
+ * - update:modelValue: Se dispara al buscar
+ */
 import { ref, watch } from 'vue';
 
 const props = withDefaults(
@@ -20,16 +36,19 @@ const emit = defineEmits<{
 
 const localValue = ref(props.modelValue);
 
+/** Emite el valor actual al padre */
 function onSearch() {
     emit('update:modelValue', localValue.value);
 }
 
+/** Escucha la tecla Enter para disparar la búsqueda */
 function onKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
         onSearch();
     }
 }
 
+/** Sincroniza el valor local cuando la prop cambia externamente */
 watch(
     () => props.modelValue,
     (val) => {

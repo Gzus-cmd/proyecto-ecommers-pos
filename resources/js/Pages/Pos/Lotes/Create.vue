@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Lotes/Create.vue
+ *
+ * Página de recepción de lotes. Permite registrar múltiples lotes de
+ * productos de una sola vez con un formulario dinámico de filas.
+ * Cada fila incluye: producto, número de lote, fecha de vencimiento y
+ * cantidad. Envía POST a 'pos.lotes.store'.
+ *
+ * Props:
+ * - productos: Lista completa de productos disponibles para seleccionar
+ */
 import { ref, reactive } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -19,9 +30,11 @@ const props = defineProps<{
 }>();
 
 let nextId = 1;
+/** Lista reactiva de filas de lotes a registrar */
 const lotes = reactive<LoteRow[]>([]);
 const saving = ref(false);
 
+/** Agrega una nueva fila vacía al formulario de lotes */
 function agregarFila() {
     lotes.push({
         id: nextId++,
@@ -32,6 +45,7 @@ function agregarFila() {
     });
 }
 
+/** Elimina una fila del formulario por su ID */
 function quitarFila(id: number) {
     const idx = lotes.findIndex((l) => l.id === id);
     if (idx !== -1) lotes.splice(idx, 1);
@@ -40,6 +54,10 @@ function quitarFila(id: number) {
 // Agregar primera fila por defecto
 agregarFila();
 
+/**
+ * Valida y envía el formulario de lotes.
+ * Realiza validación client-side antes de enviar POST.
+ */
 function submit() {
     // Validación client-side básica
     for (const lote of lotes) {
@@ -72,6 +90,7 @@ function submit() {
     );
 }
 
+/** Retorna la etiqueta de un producto para mostrar en el select */
 function productoLabel(sku: string): string {
     const p = props.productos.find((p) => p.sku === sku);
     return p ? `${p.sku} - ${p.nombre_comercial}` : sku;

@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * Productos/Edit.vue
+ *
+ * Página para editar un producto existente. Precarga los datos del
+ * producto recibido por props. Envía PUT a 'pos.productos.update'.
+ *
+ * Props:
+ * - producto: Objeto ProductoLocal con los datos actuales
+ */
 import { useForm, router } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
@@ -25,6 +34,7 @@ const form = useForm({
     activo: props.producto.activo,
 });
 
+/** Envía el formulario para actualizar el producto */
 function submit() {
     form.put(route('pos.productos.update', props.producto.sku), {
         onSuccess: () => {

@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * Users/Index.vue
+ *
+ * Página de listado de usuarios del sistema. Muestra tabla paginada con
+ * nombre, email, roles, estado y fecha de creación. Solo accesible para
+ * administradores. Permite crear, editar y desactivar usuarios.
+ *
+ * Props:
+ * - users: Datos paginados de usuarios (PaginatedData<User>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -17,12 +28,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** ID del usuario que se intenta desactivar (null = sin confirmación activa) */
 const deleteId = ref<number | null>(null);
 
+/** Abre el diálogo de confirmación para desactivar un usuario */
 function confirmDeactivate(id: number) {
     deleteId.value = id;
 }
 
+/** Ejecuta la desactivación del usuario confirmado */
 function handleDeactivate() {
     if (deleteId.value) {
         router.delete(route('pos.users.destroy', deleteId.value), {
@@ -39,6 +53,7 @@ function handleDeactivate() {
     }
 }
 
+/** Lee y muestra mensajes flash del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -46,6 +61,7 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/** Columnas de la tabla de usuarios */
 const columns = [
     { key: 'name', label: 'Nombre' },
     { key: 'email', label: 'Email' },

@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * FormField.vue
+ *
+ * Componente wrapper para campos de formulario. Agrega etiqueta,
+ * indicador de campo requerido y mensaje de error. El contenido
+ * del campo se pasa via slot default.
+ *
+ * Props:
+ * - label: Etiqueta del campo
+ * - error: Mensaje de error (opcional, se muestra en rojo)
+ * - required: Muestra asterisco rojo indicando campo obligatorio
+ *
+ * Slots:
+ * - default: El input/control del formulario
+ */
 import Input from '@/Components/pos/ui/Input.vue';
 import Select from '@/Components/pos/ui/Select.vue';
 

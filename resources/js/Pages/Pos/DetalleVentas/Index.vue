@@ -1,4 +1,16 @@
 <script setup lang="ts">
+/**
+ * DetalleVentas/Index.vue
+ *
+ * Página de detalle de ventas (visión global). Muestra tabla paginada
+ * con todas las líneas de detalle de ventas registradas: venta #,
+ * producto, SKU, cantidad, precio unitario y subtotal. Permite ir
+ * al detalle de cada venta desde el enlace en el número de venta.
+ *
+ * Props:
+ * - detalles: Datos paginados de detalles de venta
+ * - search: Término de búsqueda actual (opcional)
+ */
 import AppPageShell from '@/Components/pos/AppPageShell.vue';
 import AppPageHeader from '@/Components/pos/AppPageHeader.vue';
 import DataTable from '@/Components/pos/DataTable.vue';
@@ -9,6 +21,7 @@ defineProps<{
     search?: string;
 }>();
 
+/** Columnas de la tabla de detalle de ventas */
 const columns = [
     { key: 'venta_id', label: 'Venta #' },
     { key: 'producto', label: 'Producto' },

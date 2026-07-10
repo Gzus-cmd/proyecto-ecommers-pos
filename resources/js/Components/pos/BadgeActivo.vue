@@ -1,4 +1,13 @@
 <script setup lang="ts">
+/**
+ * BadgeActivo.vue
+ *
+ * Badge visual que indica el estado activo/inactivo de una entidad.
+ * Muestra "Activo" en verde o "Inactivo" en rojo con estilo pill.
+ *
+ * Props:
+ * - activo: true muestra badge verde "Activo", false muestra rojo "Inactivo"
+ */
 defineProps<{
     activo: boolean;
 }>();

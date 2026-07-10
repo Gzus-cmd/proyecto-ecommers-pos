@@ -1,6 +1,9 @@
 /**
  * Route helper — enumeración manual de rutas POS.
  * Reemplaza Ziggy: sin dependencias, sin Blade, 100% TypeScript.
+ *
+ * La función route() recibe un nombre de ruta y parámetros opcionales,
+ * y devuelve la URL resuelta reemplazando placeholders {param}.
  */
 
 type Primitive = string | number | boolean | null | undefined;
@@ -89,6 +92,19 @@ const ROUTES: Record<string, string> = {
     'settings.sede.update': '/settings/sede',
 };
 
+/**
+ * Resuelve una URL a partir del nombre de ruta y parámetros opcionales.
+ *
+ * @param name - Nombre de la ruta (ej. 'pos.productos.edit')
+ * @param params - Parámetros para reemplazar placeholders en la URL.
+ *                 Puede ser un objeto {key: value} o un valor primitivo
+ *                 que reemplaza el primer placeholder encontrado.
+ * @returns URL resuelta o '#' si la ruta no existe
+ *
+ * @example
+ * route('pos.productos.edit', { producto: 'PROD-001' }) // → '/pos/productos/PROD-001/edit'
+ * route('pos.ventas.show', 5)                            // → '/pos/ventas/5'
+ */
 export function route(name: string, params?: Params): string {
     let uri = ROUTES[name];
 

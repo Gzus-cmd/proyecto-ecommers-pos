@@ -1,4 +1,19 @@
 <script setup lang="ts">
+/**
+ * AppSectionCard.vue
+ *
+ * Componente de tarjeta de sección reutilizable. Similar a Card pero
+ * permite un slot "header" personalizado además del título/descripción
+ * por props. Útil para agrupar contenido relacionado.
+ *
+ * Props:
+ * - title: Título de la sección (opcional)
+ * - description: Descripción corta (opcional)
+ *
+ * Slots:
+ * - header: Contenido del encabezado (opcional, reemplaza title/description)
+ * - default: Contenido del cuerpo de la tarjeta
+ */
 defineProps<{
     title?: string;
     description?: string;

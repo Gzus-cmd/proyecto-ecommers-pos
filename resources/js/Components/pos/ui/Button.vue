@@ -1,4 +1,21 @@
 <script setup lang="ts">
+/**
+ * Button.vue
+ *
+ * Componente de botón reutilizable con variantes visuales.
+ * Usa class-variance-authority (CVA) para gestionar las combinaciones
+ * de variante + tamaño. Soporta estado de carga con spinner.
+ *
+ * Props:
+ * - variant: Estilo visual ('default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'success')
+ * - size: Tamaño ('sm' | 'default' | 'lg' | 'icon')
+ * - disabled: Deshabilita el botón
+ * - loading: Muestra spinner de carga y deshabilita
+ * - type: Tipo del botón HTML ('button' | 'submit' | 'reset')
+ *
+ * Slots:
+ * - default: Contenido del botón (texto o iconos)
+ */
 import { computed } from 'vue';
 import { cva, type VariantProps } from 'class-variance-authority';
 

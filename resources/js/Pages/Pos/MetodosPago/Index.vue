@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * MetodosPago/Index.vue
+ *
+ * Página de listado de métodos de pago. Muestra tabla paginada con
+ * nombre, número de cuenta, titular y estado. Solo visible para
+ * administradores. Permite crear, editar y eliminar métodos de pago.
+ *
+ * Props:
+ * - metodos: Datos paginados de métodos de pago (PaginatedData<MetodoPago>)
+ * - search: Término de búsqueda actual (opcional)
+ */
 import { ref, computed, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { route } from '@/lib/route';
@@ -17,12 +28,15 @@ const props = defineProps<{
     search?: string;
 }>();
 
+/** ID del método de pago que se intenta eliminar (null = sin confirmación) */
 const deleteId = ref<number | null>(null);
 
+/** Abre el diálogo de confirmación para eliminar un método de pago */
 function confirmDelete(id: number) {
     deleteId.value = id;
 }
 
+/** Ejecuta la eliminación del método de pago confirmado */
 function handleDelete() {
     if (deleteId.value) {
         router.delete(route('pos.metodos-pago.destroy', deleteId.value), {
@@ -39,6 +53,7 @@ function handleDelete() {
     }
 }
 
+/** Lee y muestra mensajes flash del backend */
 function showFlash() {
     const page = (router as any).page;
     if (page?.props?.flash?.success) toast.success(page.props.flash.success);
@@ -49,6 +64,7 @@ function showFlash() {
 }
 onMounted(() => showFlash());
 
+/** Columnas de la tabla de métodos de pago */
 const columns = [
     { key: 'nombre', label: 'Nombre' },
     { key: 'numero_cuenta', label: 'N° Cuenta' },
